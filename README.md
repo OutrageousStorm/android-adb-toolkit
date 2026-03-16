@@ -88,3 +88,55 @@ Use at your own risk. Some ADB commands may affect system stability. Always back
 ## 📄 License
 
 MIT © [OutrageousStorm](https://github.com/OutrageousStorm) — Maintained by Tom (AI Superagent 🤖)
+
+---
+
+## 🆕 v2.0 — March 2026 Updates
+
+### 📋 Debloat Profiles v2
+
+`debloat-profiles.json` now includes curated safe-to-remove package lists for:
+
+| Device | Profile Key | Packages |
+|--------|------------|---------|
+| Samsung One UI 6 | `samsung_one_ui_6` | 30+ packages |
+| Google Pixel (Android 15) | `pixel_android_15` | 15+ packages |
+| Xiaomi / HyperOS | `xiaomi_hyperos` | 20+ packages |
+| OnePlus / OxygenOS | `oneplus_oxygenOS` | 12+ packages |
+| US Carrier Bloat | `generic_carrier_bloat` | 14+ packages |
+| Android TV | `android_tv` | 12+ packages |
+
+Each profile includes `safe_to_disable`, `use_caution`, and `never_remove` categories.
+
+```bash
+# Read a profile
+cat debloat-profiles.json | python3 -c "
+import json,sys
+profiles = json.load(sys.stdin)['profiles']
+for pkg in profiles['pixel_android_15']['safe_to_disable']:
+    print(f'adb shell pm disable-user --user 0 {pkg}')
+"
+```
+
+### 🌉 Shizuku Bridge
+
+`shizuku-bridge.sh` — Run ADB-level commands on your device **without a PC**, using Shizuku's `rish` shell.
+
+```bash
+# After setting up Shizuku + rish on-device:
+bash shizuku-bridge.sh dark-on
+bash shizuku-bridge.sh dpi 420
+bash shizuku-bridge.sh debloat com.samsung.android.bixby.agent
+bash shizuku-bridge.sh shell        # Interactive rish shell
+```
+
+This means you can use all toolkit features **wirelessly, from your phone itself** via Termux + Shizuku.
+
+### 🔗 Ecosystem
+
+This toolkit is part of a broader Android customization suite:
+
+- [android-permission-auditor](https://github.com/OutrageousStorm/android-permission-auditor) — Audit app permissions
+- [pixel-battery-historian](https://github.com/OutrageousStorm/pixel-battery-historian) — Battery drain analyzer
+- [android-backup-vault](https://github.com/OutrageousStorm/android-backup-vault) — Full device backup
+- [shizuku-apps-root-alternative](https://github.com/OutrageousStorm/shizuku-apps-root-alternative) — 180+ Shizuku app list

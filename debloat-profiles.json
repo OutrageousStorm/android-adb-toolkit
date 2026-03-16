@@ -1,0 +1,156 @@
+{
+  "version": "2.0.0",
+  "updated": "2026-03",
+  "profiles": {
+    "samsung_one_ui_6": {
+      "name": "Samsung One UI 6.x",
+      "description": "Safe bloatware removal for Samsung Galaxy devices running One UI 6",
+      "safe_to_disable": [
+        "com.samsung.android.bixby.agent",
+        "com.samsung.android.bixby.wakeup",
+        "com.samsung.android.bixbyvision.framework",
+        "com.samsung.android.app.tips",
+        "com.samsung.android.game.gametools",
+        "com.samsung.android.game.gamehome",
+        "com.samsung.android.sticker",
+        "com.samsung.android.themecenter",
+        "com.samsung.android.livestickers",
+        "com.samsung.android.app.watchmanagerstub",
+        "com.samsung.android.accessory",
+        "com.samsung.android.app.spage",
+        "com.samsung.android.themestore",
+        "com.sec.android.app.sbrowser",
+        "com.samsung.android.calendar",
+        "com.samsung.android.dialer",
+        "com.samsung.android.messaging",
+        "com.samsung.android.email.provider",
+        "com.samsung.android.app.reminder",
+        "com.hiya.star",
+        "com.samsung.android.privateshare",
+        "com.samsung.android.kidsinstaller",
+        "com.samsung.android.ardrawing",
+        "com.samsung.android.arzone",
+        "com.samsung.android.dicsearch",
+        "com.samsung.android.smartswitchassistant",
+        "com.samsung.android.rubin.app"
+      ],
+      "use_caution": [
+        "com.samsung.android.contacts",
+        "com.samsung.android.app.galaxy.store",
+        "com.samsung.android.scloud"
+      ],
+      "never_remove": [
+        "com.samsung.android.providers.media",
+        "com.samsung.android.framework",
+        "com.samsung.android.providers.downloads"
+      ]
+    },
+    "pixel_android_15": {
+      "name": "Google Pixel (Android 15)",
+      "description": "Google bloat removal for Pixel devices",
+      "safe_to_disable": [
+        "com.google.android.apps.tachyon",
+        "com.google.android.apps.subscriptions.red",
+        "com.google.android.apps.youtube.music",
+        "com.google.android.apps.googleassistant",
+        "com.google.android.apps.recorder",
+        "com.google.android.apps.safetyhub",
+        "com.google.android.apps.magazines",
+        "com.google.android.apps.podcasts",
+        "com.google.android.apps.wallpaper",
+        "com.google.android.apps.wellbeing",
+        "com.google.android.feedback",
+        "com.google.android.partnersetup",
+        "com.google.android.apps.restore",
+        "com.google.android.storagemanager",
+        "com.google.android.apps.tips"
+      ],
+      "use_caution": [
+        "com.google.android.gms",
+        "com.google.android.gsf",
+        "com.google.android.providers.media.module"
+      ]
+    },
+    "xiaomi_hyperos": {
+      "name": "Xiaomi / HyperOS",
+      "description": "MIUI/HyperOS bloat removal",
+      "safe_to_disable": [
+        "com.miui.analytics",
+        "com.miui.msa.global",
+        "com.miui.systemAdSolution",
+        "com.miui.yellowpage",
+        "com.miui.bugreport",
+        "com.miui.mishare.connectivity",
+        "com.mi.globalbrowser",
+        "com.miui.miservice",
+        "com.miui.cloudservice",
+        "com.miui.cloudservice.sysbase",
+        "com.miui.daemon",
+        "com.xiaomi.midrop",
+        "com.miui.videoplayer",
+        "com.miui.player",
+        "com.miui.notes",
+        "com.miui.compass",
+        "com.mfashiongallery.emag",
+        "com.miui.fm",
+        "com.mi.health",
+        "com.miui.cleanmaster",
+        "com.miui.antispam",
+        "com.miui.supermarket"
+      ]
+    },
+    "oneplus_oxygenOS": {
+      "name": "OnePlus / OxygenOS",
+      "description": "OxygenOS bloat removal",
+      "safe_to_disable": [
+        "com.oneplus.brickmode",
+        "com.oneplus.wallpaperpicker",
+        "com.oneplus.backgroundservice",
+        "com.heytap.market",
+        "com.nearme.gamecenter",
+        "com.oplus.games",
+        "com.oplus.appdetail",
+        "com.coloros.ocrscanner",
+        "com.coloros.gamespace",
+        "com.coloros.phonemanager",
+        "com.oppo.ocrservice",
+        "com.oplus.statistics.rom"
+      ]
+    },
+    "generic_carrier_bloat": {
+      "name": "Carrier Bloat (US)",
+      "description": "Common US carrier bloat — check before disabling",
+      "safe_to_disable": [
+        "com.vzw.hss.myverizon",
+        "com.verizon.mips.services",
+        "com.att.myWireless",
+        "com.tmobile.pr.mytmobile",
+        "com.sprint.ms.smf.services",
+        "com.synchronoss.dcs.att.r2g",
+        "com.att.android.attsmartwifi",
+        "com.cbs.app",
+        "com.amazon.appmanager",
+        "com.facebook.appmanager",
+        "com.facebook.system",
+        "com.facebook.services"
+      ]
+    },
+    "android_tv": {
+      "name": "Android TV / Google TV",
+      "description": "Bloat removal for Android TV devices",
+      "safe_to_disable": [
+        "com.google.android.videos",
+        "com.google.android.music",
+        "com.google.android.play.games",
+        "com.android.vending",
+        "com.google.android.feedback",
+        "com.google.android.onetimeinitializer",
+        "com.google.android.partnersetup",
+        "com.google.android.tv.remote.service",
+        "com.netflix.ninja",
+        "com.amazon.amazonvideo.livingroom",
+        "com.hbo.hbonow"
+      ]
+    }
+  }
+}
