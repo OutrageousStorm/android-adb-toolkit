@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADB Commands Cheatsheet 2026 — Android Debug Bridge Complete Reference</title>
+<meta name="description" content="Complete ADB commands cheatsheet for Android. 80+ ready-to-use commands for debloating, performance tweaks, permissions, backup, display scaling, and more.">
+<meta name="keywords" content="ADB commands cheatsheet 2026, android debug bridge commands, adb debloat, adb permission revoke, adb backup android, adb tweaks">
+<link rel="canonical" href="https://outrageousstorm.github.io/android-adb-toolkit/">
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
+  --border: #30363d; --text: #e6edf3; --muted: #8b949e;
+  --green: #3fb950; --blue: #58a6ff; --purple: #bc8cff;
+  --orange: #ffa657; --red: #ff7b72; --yellow: #e3b341;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', -apple-system, sans-serif; font-size: 15px; }
+
+/* Layout */
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 16px 0; flex-shrink: 0; }
+.content { flex: 1; padding: 32px 40px; max-width: 900px; }
+
+/* Sidebar */
+.sidebar-brand { padding: 0 16px 16px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.sidebar-brand .logo { font-size: 1.2rem; font-weight: 700; color: var(--blue); }
+.sidebar-brand .sub { font-size: 0.75rem; color: var(--muted); }
+.nav-section { padding: 8px 16px 4px; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.nav-link { display: block; padding: 6px 16px; color: var(--muted); text-decoration: none; font-size: 0.85rem; border-left: 2px solid transparent; transition: all 0.15s; }
+.nav-link:hover, .nav-link.active { color: var(--text); background: var(--surface2); border-left-color: var(--blue); }
+.nav-link .count { float: right; background: var(--surface2); padding: 1px 6px; border-radius: 10px; font-size: 0.7rem; }
+
+/* Header */
+.page-header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.page-header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+.page-header p { color: var(--muted); max-width: 600px; line-height: 1.6; }
+.header-meta { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+.tag { background: var(--surface); border: 1px solid var(--border); padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; color: var(--muted); }
+.tag.green { color: var(--green); border-color: rgba(63,185,80,0.4); }
+
+/* Search */
+.search-bar { position: relative; margin-bottom: 28px; }
+.search-bar input { width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 10px 16px 10px 40px; border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+.search-bar input:focus { border-color: var(--blue); }
+.search-bar::before { content: "🔍"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.9rem; }
+
+/* Sections */
+.section { margin-bottom: 48px; scroll-margin-top: 20px; }
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.section-icon { font-size: 1.3rem; }
+.section-title { font-size: 1.15rem; font-weight: 600; }
+.section-badge { background: var(--surface); border: 1px solid var(--border); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; color: var(--muted); }
+
+/* Command cards */
+.cmd-grid { display: flex; flex-direction: column; gap: 8px; }
+.cmd-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.cmd-card:hover { border-color: var(--border); background: var(--surface2); }
+.cmd-top { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; }
+.cmd-code-wrap { flex: 1; min-width: 0; }
+.cmd-code { font-family: 'Consolas', 'Fira Code', monospace; font-size: 0.82rem; color: var(--green); word-break: break-all; line-height: 1.5; }
+.cmd-code .flag { color: var(--orange); }
+.cmd-code .value { color: var(--yellow); }
+.cmd-code .comment { color: var(--muted); font-style: italic; }
+.cmd-desc { font-size: 0.8rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+.copy-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 5px; font-size: 0.72rem; cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+.copy-btn:hover { border-color: var(--blue); color: var(--blue); }
+.copy-btn.copied { border-color: var(--green); color: var(--green); }
+.cmd-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.68rem; margin-right: 4px; font-weight: 500; }
+.cmd-tag.safe { background: rgba(63,185,80,0.15); color: var(--green); }
+.cmd-tag.caution { background: rgba(227,179,65,0.15); color: var(--yellow); }
+.cmd-tag.danger { background: rgba(255,123,114,0.15); color: var(--red); }
+.cmd-tag.info { background: rgba(88,166,255,0.15); color: var(--blue); }
+
+/* Tools CTA */
+.tools-cta { background: linear-gradient(135deg, rgba(88,166,255,0.08), rgba(188,140,255,0.08)); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin-bottom: 32px; text-align: center; }
+.tools-cta h2 { font-size: 1.05rem; margin-bottom: 6px; }
+.tools-cta p { color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; transition: opacity 0.15s; margin: 3px; }
+.btn-primary { background: var(--blue); color: #000; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn:hover { opacity: 0.85; }
+
+/* Prereq box */
+.prereq { background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.2); border-radius: 8px; padding: 14px 16px; margin-bottom: 32px; font-size: 0.85rem; }
+.prereq strong { color: var(--blue); }
+.prereq code { background: var(--surface2); padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 0.82rem; }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .content { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">📱 ADB Cheatsheet</div>
+    <div class="sub">Android Debug Bridge 2026</div>
+  </div>
+  <div class="nav-section">Reference</div>
+  <a class="nav-link active" href="#setup">Setup & Connection <span class="count">6</span></a>
+  <a class="nav-link" href="#device-info">Device Info <span class="count">8</span></a>
+  <a class="nav-link" href="#performance">Performance <span class="count">7</span></a>
+  <a class="nav-link" href="#privacy">Privacy & Permissions <span class="count">8</span></a>
+  <a class="nav-link" href="#debloat">Debloating <span class="count">6</span></a>
+  <a class="nav-link" href="#display">Display & DPI <span class="count">6</span></a>
+  <a class="nav-link" href="#backup">Backup & Restore <span class="count">6</span></a>
+  <a class="nav-link" href="#battery">Battery & Power <span class="count">5</span></a>
+  <a class="nav-link" href="#developer">Developer Tools <span class="count">5</span></a>
+  <div class="nav-section">Tools</div>
+  <a class="nav-link" href="https://github.com/OutrageousStorm/android-adb-toolkit">Web GUI →</a>
+  <a class="nav-link" href="https://github.com/OutrageousStorm/android-privacy-hardener">Privacy Script →</a>
+  <a class="nav-link" href="https://github.com/OutrageousStorm/awesome-android-customization">All Tools →</a>
+</nav>
+
+<main class="content">
+  <div class="page-header">
+    <h1>ADB Commands Cheatsheet 2026</h1>
+    <p>80+ ready-to-run ADB commands. Click any command to copy it. No root required for most commands.</p>
+    <div class="header-meta">
+      <span class="tag green">✓ No Root for Most</span>
+      <span class="tag">Android 8.0+</span>
+      <span class="tag">Updated March 2026</span>
+      <span class="tag">80+ Commands</span>
+    </div>
+  </div>
+
+  <div class="prereq">
+    <strong>Prerequisites:</strong> Install ADB: <code>brew install android-platform-tools</code> (macOS) · <code>winget install Google.PlatformTools</code> (Windows) · <code>sudo apt install adb</code> (Linux).
+    Enable <strong>USB Debugging</strong> in Settings → Developer Options. Then connect and run <code>adb devices</code> to verify.
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search commands... (e.g. 'disable', 'permission', 'backup')" oninput="filterCommands(this.value)">
+  </div>
+
+  <!-- SETUP -->
+  <section class="section" id="setup">
+    <div class="section-header">
+      <span class="section-icon">🔌</span>
+      <span class="section-title">Setup & Connection</span>
+      <span class="section-badge">6 commands</span>
+    </div>
+    <div class="cmd-grid">
+      <div class="cmd-card" data-tags="setup connect list devices">
+        <div class="cmd-top">
+          <div class="cmd-code-wrap">
+            <div class="cmd-code">adb devices</div>
+            <div class="cmd-desc">List connected devices. Shows serial numbers and connection state. Run this first.</div>
+            <span class="cmd-tag safe">safe</span>
+          </div>
+          <button class="copy-btn" onclick="copyCmd(this,'adb devices')">Copy</button>
+        </div>
+      </div>
+      <div class="cmd-card" data-tags="setup connect wifi wireless">
+        <div class="cmd-top">
+          <div class="cmd-code-wrap">
+            <div class="cmd-code">adb connect <span class="value">192.168.1.100</span>:5555</div>
+            <div class="cmd-desc">Connect wirelessly. First enable Wireless Debugging in Developer Options (Android 11+).</div>
+            <span class="cmd-tag safe">safe</span><span class="cmd-tag info">wireless</span>
+          </div>
+          <button class="copy-btn" onclick="copyCmd(this,'adb connect 192.168.1.100:5555')">Copy</button>
+        </div>
+      </div>
+      <div class="cmd-card" data-tags="setup shell">
+        <div class="cmd-top">
+          <div class="cmd-code-wrap">
+            <div class="cmd-code">adb shell</div>
+            <div class="cmd-desc">Open an interactive shell session on the device. Type <code>exit</code> to close.</div>
+            <span class="cmd-tag safe">safe</span>
+          </div>
+          <button class="copy-btn" onclick="copyCmd(this,'adb shell')">Copy</button>
+        </div>
+      </div>
+      <div class="cmd-card" data-tags="setup reboot restart">
+        <div class="cmd-top">
+          <div class="cmd-code-wrap">
+            <div class="cmd-code">adb reboot</div>
+            <div class="cmd-desc">Reboot the device normally. Also: <code>adb reboot bootloader</code> / <code>adb reboot recovery</code>.</div>
+            <span class="cmd-tag caution">caution</span>
+          </div>
+          <button class="copy-btn" onclick="copyCmd(this,'adb reboot')">Copy</button>
+        </div>
+      </div>
+      <div class="cmd-card" data-tags="setup pair wireless android11">
+        <div class="cmd-top">
+          <div class="cmd-code-wrap">
+            <div class="cmd-code">adb pair <span class="value">192.168.1.100</span>:<span class="value">PORT</span></div>
+            <div class="cmd-desc">Pair wirelessly (Android 11+). Use the pairing code from Wireless Debugging settings.</div>
+            <span class="cmd-tag safe">safe</span>
+          </div>
+          <button class="copy-btn" onclick="copyCmd(this,'adb pair 192.168.1.100:PORT')">Copy</button>
+        </div>
+      </div>
+      <div class="cmd-card" data-tags="setup kill server restart">
+        <div class="cmd-top">
+          <div class="cmd-code-wrap">
+            <div class="cmd-code">adb kill-server && adb start-server</div>
+            <div class="cmd-desc">Restart the ADB daemon. Fixes most "device not found" or connection issues.</div>
+            <span class="cmd-tag safe">safe</span>
+          </div>
+          <button class="copy-btn" onclick="copyCmd(this,'adb kill-server && adb start-server')">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEVICE INFO -->
+  <section class="section" id="device-info">
+    <div class="section-header">
+      <span class="section-icon">📊</span>
+      <span class="section-title">Device Info</span>
+      <span class="section-badge">8 commands</span>
+    </div>
+    <div class="cmd-grid">
+      <div class="cmd-card" data-tags="info model android version">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell getprop ro.product.model</div>
+          <div class="cmd-desc">Get device model name.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell getprop ro.product.model')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="info android version">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell getprop ro.build.version.release</div>
+          <div class="cmd-desc">Get Android OS version number (e.g. "14").</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell getprop ro.build.version.release')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="info packages installed apps list">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm list packages <span class="flag">-f</span></div>
+          <div class="cmd-desc">List all installed packages with APK file paths. Remove <code>-f</code> for just package names.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm list packages -f')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="info packages third party user installed">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm list packages <span class="flag">-3</span></div>
+          <div class="cmd-desc">List only user-installed (third-party) packages.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm list packages -3')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="info battery health stats">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell dumpsys battery</div>
+          <div class="cmd-desc">Full battery status: level, health, temperature, voltage, charging state.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell dumpsys battery')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="info screen display resolution density">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell wm size && adb shell wm density</div>
+          <div class="cmd-desc">Get current screen resolution and DPI density values.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell wm size && adb shell wm density')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="info cpu ram memory">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell cat /proc/meminfo</div>
+          <div class="cmd-desc">Total and available RAM. MemTotal and MemAvailable are the key values.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell cat /proc/meminfo')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="info storage disk space">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell df <span class="flag">-h</span></div>
+          <div class="cmd-desc">Disk usage for all partitions in human-readable format.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell df -h')">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERFORMANCE -->
+  <section class="section" id="performance">
+    <div class="section-header">
+      <span class="section-icon">⚡</span>
+      <span class="section-title">Performance Tweaks</span>
+      <span class="section-badge">7 commands</span>
+    </div>
+    <div class="cmd-grid">
+      <div class="cmd-card" data-tags="performance animation speed transition">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell settings put global window_animation_scale <span class="value">0.5</span><br>adb shell settings put global transition_animation_scale <span class="value">0.5</span><br>adb shell settings put global animator_duration_scale <span class="value">0.5</span></div>
+          <div class="cmd-desc">Set all animations to 0.5x speed. Use 0 to disable entirely. Makes the phone feel noticeably snappier.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell settings put global window_animation_scale 0.5\nadb shell settings put global transition_animation_scale 0.5\nadb shell settings put global animator_duration_scale 0.5')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="performance animation disable">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell settings put global window_animation_scale <span class="value">0</span><br>adb shell settings put global transition_animation_scale <span class="value">0</span><br>adb shell settings put global animator_duration_scale <span class="value">0</span></div>
+          <div class="cmd-desc">Disable all animations entirely. Fastest feel, but can look jarring. Restore to 1 to revert.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell settings put global window_animation_scale 0\nadb shell settings put global transition_animation_scale 0\nadb shell settings put global animator_duration_scale 0')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="performance headsup notifications">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell settings put global heads_up_notifications_enabled <span class="value">0</span></div>
+          <div class="cmd-desc">Disable heads-up (floating) notifications. Restore to 1 to re-enable.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell settings put global heads_up_notifications_enabled 0')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="performance wake lock CPU background">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell dumpsys power | grep "Wake Locks"</div>
+          <div class="cmd-desc">Show apps holding wake locks. If battery drains fast, this reveals the culprit.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell dumpsys power | grep "Wake Locks"')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="performance force stop kill app">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell am force-stop <span class="value">com.package.name</span></div>
+          <div class="cmd-desc">Force stop any app by package name. Frees RAM immediately.</div><span class="cmd-tag caution">caution</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell am force-stop com.package.name')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="performance trim memory gc">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell am send-trim-memory <span class="value">com.package.name</span> RUNNING_LOW</div>
+          <div class="cmd-desc">Tell an app to release memory. Useful for heavy apps like Chrome or games.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell am send-trim-memory com.package.name RUNNING_LOW')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="performance background data restrict">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell cmd netpolicy set restrict-background true</div>
+          <div class="cmd-desc">Enable Data Saver globally. Restricts background data for all apps not whitelisted.</div><span class="cmd-tag caution">caution</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell cmd netpolicy set restrict-background true')">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="section" id="privacy">
+    <div class="section-header">
+      <span class="section-icon">🔒</span>
+      <span class="section-title">Privacy & Permissions</span>
+      <span class="section-badge">8 commands</span>
+    </div>
+    <div class="cmd-grid">
+      <div class="cmd-card" data-tags="privacy permissions revoke location tracking">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm revoke <span class="value">com.package.name</span> android.permission.ACCESS_FINE_LOCATION</div>
+          <div class="cmd-desc">Revoke fine location permission from any app. Replace package name and permission as needed.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm revoke com.package.name android.permission.ACCESS_FINE_LOCATION')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="privacy permissions list app">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell dumpsys package <span class="value">com.package.name</span> | grep permission</div>
+          <div class="cmd-desc">List all permissions granted to a specific app. Shows both granted and denied.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell dumpsys package com.package.name | grep permission')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="privacy camera microphone revoke">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm revoke <span class="value">com.package.name</span> android.permission.CAMERA<br>adb shell pm revoke <span class="value">com.package.name</span> android.permission.RECORD_AUDIO</div>
+          <div class="cmd-desc">Revoke camera and microphone access. Effective for social media apps that don't need them.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm revoke com.package.name android.permission.CAMERA\nadb shell pm revoke com.package.name android.permission.RECORD_AUDIO')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="privacy telemetry google disable">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell settings put global google_usage_stats_disabled <span class="value">1</span></div>
+          <div class="cmd-desc">Disable Google usage statistics reporting. Part of the Privacy Hardener script.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell settings put global google_usage_stats_disabled 1')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="privacy advertising id reset">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell settings put secure limit_ad_tracking <span class="value">1</span></div>
+          <div class="cmd-desc">Opt out of ad tracking. Equivalent to "Opt out of Ads Personalization" in Settings.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell settings put secure limit_ad_tracking 1')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="privacy contacts read revoke">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm revoke <span class="value">com.package.name</span> android.permission.READ_CONTACTS</div>
+          <div class="cmd-desc">Revoke contacts access. Highly recommended for social apps (LinkedIn, TikTok, etc.).</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm revoke com.package.name android.permission.READ_CONTACTS')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="privacy all permissions app revoke bulk">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm reset-permissions <span class="flag">-p</span> <span class="value">com.package.name</span></div>
+          <div class="cmd-desc">Reset ALL runtime permissions for an app to ungranted state. Nuclear option — app will ask again.</div><span class="cmd-tag caution">caution</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm reset-permissions -p com.package.name')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="privacy sensor block background">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell settings put global sensors_off_for_unknown_apps <span class="value">1</span></div>
+          <div class="cmd-desc">Block sensor access (accelerometer, gyro, etc.) for apps not in foreground. Android 12+.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell settings put global sensors_off_for_unknown_apps 1')">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEBLOAT -->
+  <section class="section" id="debloat">
+    <div class="section-header">
+      <span class="section-icon">🗑️</span>
+      <span class="section-title">Debloating</span>
+      <span class="section-badge">6 commands</span>
+    </div>
+    <div class="cmd-grid">
+      <div class="cmd-card" data-tags="debloat disable system app no root">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm disable-user <span class="flag">--user 0</span> <span class="value">com.package.name</span></div>
+          <div class="cmd-desc">Disable a system app for your user. App stays installed but can't run. Reversible — no root needed.</div><span class="cmd-tag safe">safe</span><span class="cmd-tag info">reversible</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm disable-user --user 0 com.package.name')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="debloat enable reenable restore app">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm enable <span class="value">com.package.name</span></div>
+          <div class="cmd-desc">Re-enable a previously disabled app. Always reversible.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm enable com.package.name')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="debloat uninstall remove user app">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm uninstall <span class="flag">-k --user 0</span> <span class="value">com.package.name</span></div>
+          <div class="cmd-desc">Uninstall for current user only. App data kept (-k). Restores on factory reset. Safer than full uninstall.</div><span class="cmd-tag caution">caution</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm uninstall -k --user 0 com.package.name')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="debloat reinstall restore system app">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell cmd package install-existing <span class="value">com.package.name</span></div>
+          <div class="cmd-desc">Restore a user-uninstalled system app without factory reset.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell cmd package install-existing com.package.name')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="debloat list disabled packages">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm list packages <span class="flag">-d</span></div>
+          <div class="cmd-desc">List all currently disabled packages. Useful audit of what you've already disabled.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm list packages -d')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="debloat find package name search">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm list packages | grep <span class="flag">-i</span> <span class="value">samsung</span></div>
+          <div class="cmd-desc">Search for packages by keyword. Replace "samsung" with your search term.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm list packages | grep -i samsung')">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DISPLAY -->
+  <section class="section" id="display">
+    <div class="section-header">
+      <span class="section-icon">🖥️</span>
+      <span class="section-title">Display & DPI</span>
+      <span class="section-badge">6 commands</span>
+    </div>
+    <div class="cmd-grid">
+      <div class="cmd-card" data-tags="display dpi density change">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell wm density <span class="value">420</span></div>
+          <div class="cmd-desc">Change display DPI. Lower = more content on screen. Typical range: 320-480. Reset: <code>adb shell wm density reset</code></div><span class="cmd-tag safe">safe</span><span class="cmd-tag info">reversible</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell wm density 420')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="display resolution size change">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell wm size <span class="value">1080x1920</span></div>
+          <div class="cmd-desc">Override screen resolution. Reset: <code>adb shell wm size reset</code>. Use with caution — some resolutions cause issues.</div><span class="cmd-tag caution">caution</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell wm size 1080x1920')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="display font size scale">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell settings put system font_scale <span class="value">1.0</span></div>
+          <div class="cmd-desc">Set font size scale. 1.0 = default. Range: 0.85 (smaller) to 1.3 (larger).</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell settings put system font_scale 1.0')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="display brightness auto adaptive">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell settings put system screen_brightness <span class="value">128</span></div>
+          <div class="cmd-desc">Set screen brightness (0-255). Disable auto-brightness first: <code>settings put system screen_brightness_mode 0</code></div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell settings put system screen_brightness 128')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="display screenshot capture">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb exec-out screencap <span class="flag">-p</span> > screen.png</div>
+          <div class="cmd-desc">Take a screenshot and save directly to your PC as screen.png.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb exec-out screencap -p > screen.png')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="display record screen video">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell screenrecord /sdcard/record.mp4</div>
+          <div class="cmd-desc">Record screen to device storage. Ctrl+C to stop. Pull with: <code>adb pull /sdcard/record.mp4</code></div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell screenrecord /sdcard/record.mp4')">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BACKUP -->
+  <section class="section" id="backup">
+    <div class="section-header">
+      <span class="section-icon">💾</span>
+      <span class="section-title">Backup & Files</span>
+      <span class="section-badge">6 commands</span>
+    </div>
+    <div class="cmd-grid">
+      <div class="cmd-card" data-tags="backup pull file copy pc">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb pull <span class="value">/sdcard/DCIM/</span> <span class="value">./backup/</span></div>
+          <div class="cmd-desc">Copy a folder from device to PC. Works for any path you have permission to access.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb pull /sdcard/DCIM/ ./backup/')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="backup push file upload device">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb push <span class="value">./file.apk</span> <span class="value">/sdcard/</span></div>
+          <div class="cmd-desc">Copy a file from PC to device storage.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb push ./file.apk /sdcard/')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="backup install apk sideload">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb install <span class="flag">-r</span> <span class="value">app.apk</span></div>
+          <div class="cmd-desc">Install an APK. <code>-r</code> keeps existing data if reinstalling. Add <code>-d</code> to allow downgrades.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb install -r app.apk')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="backup extract apk app">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell pm path <span class="value">com.package.name</span><br>adb pull <span class="value">/data/app/.../base.apk</span> ./app_backup.apk</div>
+          <div class="cmd-desc">Get the APK path of any installed app, then pull it to PC as a backup.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell pm path com.package.name')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="backup sync rsync folder">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb pull /sdcard/ . 2>&1 | tail -1</div>
+          <div class="cmd-desc">Pull all of /sdcard/ to current directory. Shows summary of files transferred.</div><span class="cmd-tag caution">caution</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb pull /sdcard/ . 2>&1 | tail -1')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="backup logcat crash log debug">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb logcat <span class="flag">-d</span> > device_log.txt</div>
+          <div class="cmd-desc">Dump the current device log buffer to a file. Useful for debugging crashes.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb logcat -d > device_log.txt')">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BATTERY -->
+  <section class="section" id="battery">
+    <div class="section-header">
+      <span class="section-icon">🔋</span>
+      <span class="section-title">Battery & Power</span>
+      <span class="section-badge">5 commands</span>
+    </div>
+    <div class="cmd-grid">
+      <div class="cmd-card" data-tags="battery stats wakelock drain history">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell dumpsys batterystats | grep -E "uid|wakelock|top"</div>
+          <div class="cmd-desc">Show which apps/UIDs are consuming battery. Grep filters to the important lines.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell dumpsys batterystats | grep -E "uid|wakelock|top"')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="battery doze optimize background">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell dumpsys deviceidle enable</div>
+          <div class="cmd-desc">Force enable Doze mode immediately (instead of waiting for device to be idle). Good for testing.</div><span class="cmd-tag caution">caution</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell dumpsys deviceidle enable')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="battery charging simulate fake">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell dumpsys battery set level <span class="value">50</span></div>
+          <div class="cmd-desc">Simulate battery level for testing. Reset with: <code>adb shell dumpsys battery reset</code></div><span class="cmd-tag caution">caution</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell dumpsys battery set level 50')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="battery saver power mode">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell settings put global low_power <span class="value">1</span></div>
+          <div class="cmd-desc">Enable Battery Saver mode. Set to 0 to disable.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell settings put global low_power 1')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="battery temperature overheat check">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell dumpsys battery | grep temperature</div>
+          <div class="cmd-desc">Check battery temperature. Value is in tenths of degrees Celsius (e.g. 290 = 29.0°C).</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell dumpsys battery | grep temperature')">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEVELOPER -->
+  <section class="section" id="developer">
+    <div class="section-header">
+      <span class="section-icon">🛠️</span>
+      <span class="section-title">Developer Tools</span>
+      <span class="section-badge">5 commands</span>
+    </div>
+    <div class="cmd-grid">
+      <div class="cmd-card" data-tags="developer activity app launch">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell am start <span class="flag">-n</span> <span class="value">com.package.name/.MainActivity</span></div>
+          <div class="cmd-desc">Launch a specific activity. Great for automation and testing.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell am start -n com.package.name/.MainActivity')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="developer url intent browser open">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell am start <span class="flag">-a android.intent.action.VIEW</span> <span class="flag">-d</span> <span class="value">"https://example.com"</span></div>
+          <div class="cmd-desc">Open a URL on the device from your PC. Works for any intent.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell am start -a android.intent.action.VIEW -d "https://example.com"')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="developer input tap click automate">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell input tap <span class="value">540</span> <span class="value">960</span></div>
+          <div class="cmd-desc">Simulate a tap at coordinates (x, y). Use <code>adb shell screencap</code> first to find coordinates.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell input tap 540 960')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="developer text input type keyboard">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell input text <span class="value">"Hello%sWorld"</span></div>
+          <div class="cmd-desc">Type text into the focused field. Use <code>%s</code> for spaces. Limited to ASCII only.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell input text "Hello%sWorld"')">Copy</button></div>
+      </div>
+      <div class="cmd-card" data-tags="developer keyevent button home back menu">
+        <div class="cmd-top"><div class="cmd-code-wrap">
+          <div class="cmd-code">adb shell input keyevent <span class="value">KEYCODE_HOME</span></div>
+          <div class="cmd-desc">Simulate button press. Common codes: HOME, BACK, MENU, POWER, VOLUME_UP, VOLUME_DOWN.</div><span class="cmd-tag safe">safe</span>
+        </div><button class="copy-btn" onclick="copyCmd(this,'adb shell input keyevent KEYCODE_HOME')">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="tools-cta">
+    <h2>🚀 Want a GUI for all of this?</h2>
+    <p>android-adb-toolkit wraps these commands in a web interface — no terminal needed.</p>
+    <a class="btn btn-primary" href="https://github.com/OutrageousStorm/android-adb-toolkit">⭐ GitHub Repo</a>
+    <a class="btn btn-ghost" href="https://github.com/OutrageousStorm/android-privacy-hardener">🔒 Privacy Script</a>
+    <a class="btn btn-ghost" href="https://github.com/OutrageousStorm/awesome-android-customization">📱 All Tools</a>
+  </div>
+
+</main>
+</div>
+
+<script>
+function copyCmd(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function filterCommands(query) {
+  const q = query.toLowerCase();
+  document.querySelectorAll('.cmd-card').forEach(card => {
+    const text = (card.dataset.tags || '') + ' ' + card.innerText.toLowerCase();
+    card.style.display = text.includes(q) ? '' : 'none';
+  });
+  document.querySelectorAll('.section').forEach(section => {
+    const visible = [...section.querySelectorAll('.cmd-card')].some(c => c.style.display !== 'none');
+    section.style.display = visible ? '' : 'none';
+  });
+}
+
+// Smooth scroll + active nav
+document.querySelectorAll('.nav-link[href^="#"]').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelector(link.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
