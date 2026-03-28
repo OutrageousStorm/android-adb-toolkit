@@ -1,0 +1,20 @@
+{
+  "name": "@outrageousstorm/adb-toolkit-cli",
+  "version": "1.0.0",
+  "description": "CLI companion for the ADB Toolkit web app",
+  "bin": {
+    "adb-toolkit": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.6"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
