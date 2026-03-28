@@ -1,88 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ADB Command Builder — Android Debug Bridge Toolkit</title>
-<meta name="description" content="Free interactive ADB command builder for Android. Debloat, tweak, backup, control permissions — 50+ commands, click to copy. No root needed.">
-<meta property="og:title" content="⚡ ADB Command Builder — Android Toolkit">
-<meta property="og:description" content="50+ ADB commands for debloating, privacy, system tweaks and more. Click to copy. Free.">
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
-  .hero { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); padding: 60px 20px; text-align: center; border-bottom: 1px solid #1e2a3a; }
-  h1 { font-size: 42px; font-weight: 900; color: #fff; margin-bottom: 16px; }
-  h1 span { color: #3b82f6; }
-  .subtitle { font-size: 18px; color: #64748b; margin-bottom: 32px; }
-  .cta-group { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-  .btn { padding: 14px 28px; border-radius: 12px; font-size: 16px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: transform 0.15s; }
-  .btn:hover { transform: translateY(-2px); }
-  .btn-primary { background: #3b82f6; color: #fff; }
-  .btn-kofi { background: #FF5E5B; color: #fff; }
-  .btn-gumroad { background: #ff90e8; color: #1a1f2e; }
-  .features { max-width: 900px; margin: 60px auto; padding: 0 20px; }
-  .features h2 { text-align: center; font-size: 28px; margin-bottom: 40px; color: #e2e8f0; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-  .card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 12px; padding: 24px; }
-  .card h3 { font-size: 18px; margin-bottom: 10px; }
-  .card p { color: #64748b; font-size: 14px; line-height: 1.6; }
-  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #1e3a5f; color: #60a5fa; margin-right: 6px; margin-bottom: 6px; }
-  .footer { text-align: center; padding: 40px 20px; color: #374151; font-size: 13px; border-top: 1px solid #1e2a3a; }
-  .footer a { color: #3b82f6; text-decoration: none; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android ADB Toolkit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: white; text-align: center; margin-bottom: 30px; font-size: 2.5em; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+        .card h2 { color: #667eea; margin-bottom: 12px; font-size: 1.4em; }
+        .card p { color: #666; line-height: 1.6; margin-bottom: 15px; }
+        .card code {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #d63384;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        .btn:hover { background: #764ba2; }
+        .tools { margin-top: 15px; font-size: 0.9em; color: #999; }
+        footer { text-align: center; color: white; margin-top: 50px; }
+    </style>
 </head>
 <body>
-<div class="hero">
-  <h1>⚡ ADB <span>Command Builder</span></h1>
-  <p class="subtitle">The fastest way to find, customize & copy Android ADB commands.<br>No root. No BS. Just commands that work.</p>
-  <div class="cta-group">
-    <a href="https://tom-app-a1353ad1.base44.app/ADBTool" class="btn btn-primary">🚀 Open Tool — It's Free</a>
-    <a href="https://ko-fi.com/outrageousstorm" class="btn btn-kofi" target="_blank">☕ Buy Me a Coffee</a>
-    <a href="https://outrageousstorm.gumroad.com/l/adb-cheatsheet" class="btn btn-gumroad" target="_blank">📄 Get the PDF ($2)</a>
-  </div>
-</div>
-
-<div class="features">
-  <h2>What's inside</h2>
-  <div class="grid">
-    <div class="card">
-      <h3>🧹 Debloat Android</h3>
-      <p>Remove bloatware and system apps without root. Works on Samsung, Xiaomi, OnePlus, Pixel and more.</p>
+    <div class="container">
+        <h1>🤖 Android ADB Toolkit</h1>
+        <div class="grid">
+            <div class="card">
+                <h2>Device Info</h2>
+                <p>Get full device report — model, CPU, RAM, battery, network, security status.</p>
+                <code>python3 device_info.py</code>
+                <div class="tools">Python • Rich terminal output</div>
+                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
+            </div>
+            <div class="card">
+                <h2>Permission Audit</h2>
+                <p>Scan every app for dangerous permissions. Export to CSV.</p>
+                <code>python3 permission_audit.py --csv</code>
+                <div class="tools">Python • 28 dangerous perms tracked</div>
+                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
+            </div>
+            <div class="card">
+                <h2>App Extractor</h2>
+                <p>Bulk extract all user APKs from device.</p>
+                <code>python3 app_extractor.py --output ./apks</code>
+                <div class="tools">Python • Shows file sizes</div>
+                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
+            </div>
+            <div class="card">
+                <h2>Network Monitor</h2>
+                <p>Real-time TCP connection monitor. Watch what your device is talking to.</p>
+                <code>python3 network_monitor.py</code>
+                <div class="tools">Python • Live feed • UID mapping</div>
+                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
+            </div>
+            <div class="card">
+                <h2>Smart Debloat</h2>
+                <p>Interactive ADB debloater with safety blocklist for core system apps.</p>
+                <code>./smart_debloat.sh package_list.txt</code>
+                <div class="tools">Bash • Safety guards included</div>
+                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
+            </div>
+            <div class="card">
+                <h2>Full Backup</h2>
+                <p>One-command backup of APKs, app data, photos, and documents.</p>
+                <code>./backup_all.sh</code>
+                <div class="tools">Bash • Portable restore</div>
+                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
+            </div>
+        </div>
+        <footer>
+            <p>All tools work via ADB. No root required for most operations.</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">by <a href="https://github.com/OutrageousStorm" style="color: white;">OutrageousStorm</a></p>
+        </footer>
     </div>
-    <div class="card">
-      <h3>🔒 Privacy Hardening</h3>
-      <p>Revoke individual app permissions — camera, mic, location — with a single command. No digging through settings.</p>
-    </div>
-    <div class="card">
-      <h3>⚙️ System Tweaks</h3>
-      <p>Disable animations, change DPI, enable wireless ADB, capture screenshots and screen recordings remotely.</p>
-    </div>
-    <div class="card">
-      <h3>🛠️ Bootloader & Recovery</h3>
-      <p>Fastboot commands for flashing, unlocking, sideloading — all in one place with explanations.</p>
-    </div>
-    <div class="card">
-      <h3>📦 Smart Package Fill</h3>
-      <p>Type your app's package name once and it fills in automatically across every command. No more copy-paste errors.</p>
-    </div>
-    <div class="card">
-      <h3>⚡ Click to Copy</h3>
-      <p>Every command copies to clipboard instantly. Search across all categories. Works on mobile too.</p>
-    </div>
-  </div>
-
-  <div style="text-align:center; margin-top: 40px;">
-    <p style="color:#64748b; margin-bottom: 16px; font-size: 14px;">Works on all Android devices:</p>
-    <span class="badge">Samsung</span><span class="badge">Google Pixel</span><span class="badge">Xiaomi</span>
-    <span class="badge">OnePlus</span><span class="badge">Nothing Phone</span><span class="badge">Sony</span>
-    <span class="badge">Motorola</span><span class="badge">Any Android 5+</span>
-  </div>
-</div>
-
-<div class="footer">
-  <p>Built by <a href="https://github.com/OutrageousStorm">OutrageousStorm</a> • 
-  <a href="https://ko-fi.com/outrageousstorm">Support on Ko-fi</a> • 
-  <a href="https://github.com/OutrageousStorm/android-adb-toolkit">View on GitHub</a></p>
-</div>
 </body>
 </html>
