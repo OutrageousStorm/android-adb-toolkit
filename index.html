@@ -6,98 +6,127 @@
     <title>Android ADB Toolkit</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 900px; margin: 0 auto; }
-        h1 { color: white; text-align: center; margin-bottom: 30px; font-size: 2.5em; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
-        .card h2 { color: #667eea; margin-bottom: 12px; font-size: 1.4em; }
-        .card p { color: #666; line-height: 1.6; margin-bottom: 15px; }
-        .card code {
-            background: #f5f5f5;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            color: #d63384;
-        }
-        .btn {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
-        .btn:hover { background: #764ba2; }
-        .tools { margin-top: 15px; font-size: 0.9em; color: #999; }
-        footer { text-align: center; color: white; margin-top: 50px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: white; margin-bottom: 30px; text-align: center; font-size: 2.5em; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .card h2 { color: #333; margin-bottom: 10px; font-size: 1.3em; }
+        .card p { color: #666; font-size: 0.95em; line-height: 1.5; }
+        .card-icon { font-size: 2em; margin-bottom: 10px; }
+        .code { background: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace; 
+                font-size: 0.9em; color: #d63384; margin-top: 10px; }
+        .category { margin-bottom: 40px; }
+        .category-title { color: white; font-size: 1.8em; margin-bottom: 20px; margin-top: 30px; }
+        a { color: #667eea; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        footer { text-align: center; color: white; margin-top: 50px; font-size: 0.9em; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🤖 Android ADB Toolkit</h1>
-        <div class="grid">
-            <div class="card">
-                <h2>Device Info</h2>
-                <p>Get full device report — model, CPU, RAM, battery, network, security status.</p>
-                <code>python3 device_info.py</code>
-                <div class="tools">Python • Rich terminal output</div>
-                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
-            </div>
-            <div class="card">
-                <h2>Permission Audit</h2>
-                <p>Scan every app for dangerous permissions. Export to CSV.</p>
-                <code>python3 permission_audit.py --csv</code>
-                <div class="tools">Python • 28 dangerous perms tracked</div>
-                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
-            </div>
-            <div class="card">
-                <h2>App Extractor</h2>
-                <p>Bulk extract all user APKs from device.</p>
-                <code>python3 app_extractor.py --output ./apks</code>
-                <div class="tools">Python • Shows file sizes</div>
-                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
-            </div>
-            <div class="card">
-                <h2>Network Monitor</h2>
-                <p>Real-time TCP connection monitor. Watch what your device is talking to.</p>
-                <code>python3 network_monitor.py</code>
-                <div class="tools">Python • Live feed • UID mapping</div>
-                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
-            </div>
-            <div class="card">
-                <h2>Smart Debloat</h2>
-                <p>Interactive ADB debloater with safety blocklist for core system apps.</p>
-                <code>./smart_debloat.sh package_list.txt</code>
-                <div class="tools">Bash • Safety guards included</div>
-                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
-            </div>
-            <div class="card">
-                <h2>Full Backup</h2>
-                <p>One-command backup of APKs, app data, photos, and documents.</p>
-                <code>./backup_all.sh</code>
-                <div class="tools">Bash • Portable restore</div>
-                <a href="https://github.com/OutrageousStorm/android-adb-toolkit" class="btn">View</a>
+        
+        <div class="category">
+            <div class="category-title">📱 Device Management</div>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">📋</div>
+                    <h2>Device Info</h2>
+                    <p>Get complete device details: model, Android version, CPU, RAM, storage, battery, network.</p>
+                    <div class="code">adb shell getprop ro.product.model</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📦</div>
+                    <h2>App Management</h2>
+                    <p>List, install, uninstall, or disable apps. Bulk operations supported.</p>
+                    <div class="code">adb shell pm list packages</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💾</div>
+                    <h2>Backup & Restore</h2>
+                    <p>Backup APKs and data. Restore everything with one command.</p>
+                    <div class="code">adb pull /data/app/</div>
+                </div>
             </div>
         </div>
+
+        <div class="category">
+            <div class="category-title">🔒 Security & Privacy</div>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">🔐</div>
+                    <h2>Permission Audit</h2>
+                    <p>Scan every app for dangerous permissions. Export to CSV.</p>
+                    <div class="code">python3 permission_audit.py</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🗑️</div>
+                    <h2>Privacy Hardening</h2>
+                    <p>Disable ad tracking, telemetry, location. 3 hardening levels.</p>
+                    <div class="code">python3 harden.py --level 2</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔍</div>
+                    <h2>Privacy Check</h2>
+                    <p>Audit current privacy status with score report.</p>
+                    <div class="code">python3 check.py</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title">🎮 Automation & Control</div>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">🖥️</div>
+                    <h2>Screen Mirror</h2>
+                    <p>Mirror device to PC with scrcpy. Multiple profiles: gaming, recording, audio.</p>
+                    <div class="code">python3 launch.py gaming</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🎬</div>
+                    <h2>Tap/Swipe Automation</h2>
+                    <p>Record and replay touch sequences. JSON-based scripts.</p>
+                    <div class="code">python3 automate.py --script actions.json</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔔</div>
+                    <h2>Notification Listener</h2>
+                    <p>Monitor and auto-reply to notifications with rules.</p>
+                    <div class="code">python3 notif_monitor.py</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category">
+            <div class="category-title">🛠️ Developer Tools</div>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">💉</div>
+                    <h2>Frida Scripts</h2>
+                    <p>SSL bypass, root detection bypass, crypto logging, intent monitoring.</p>
+                    <div class="code">frida -U -f app -l ssl-bypass.js</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🩹</div>
+                    <h2>APK Patcher</h2>
+                    <p>Patch APKs: disable SSL pinning, bypass root detection.</p>
+                    <div class="code">python3 patch.py --apk app.apk --ssl-bypass --sign</div>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🔋</div>
+                    <h2>Battery Analysis</h2>
+                    <p>Parse bugreports, find wakelock culprits, export to CSV.</p>
+                    <div class="code">python3 analyze.py bugreport.zip</div>
+                </div>
+            </div>
+        </div>
+
         <footer>
-            <p>All tools work via ADB. No root required for most operations.</p>
-            <p style="margin-top: 10px; font-size: 0.9em;">by <a href="https://github.com/OutrageousStorm" style="color: white;">OutrageousStorm</a></p>
+            <p>🚀 Android ADB Toolkit — Part of <a href="https://github.com/OutrageousStorm">OutrageousStorm</a></p>
+            <p>Maintained by Tom | <a href="https://github.com/OutrageousStorm/android-adb-toolkit">GitHub</a></p>
         </footer>
     </div>
 </body>
