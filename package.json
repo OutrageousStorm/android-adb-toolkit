@@ -1,0 +1,13 @@
+{
+  "name": "adb-toolkit-cli",
+  "version": "1.0.0",
+  "description": "Command-line ADB toolkit",
+  "main": "cli.js",
+  "bin": {
+    "adb-toolkit": "./cli.js"
+  },
+  "keywords": [
+    "adb",
+    "android"
+  ]
+}
