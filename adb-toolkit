@@ -1,0 +1,38 @@
+#!/bin/bash
+# adb-toolkit — CLI wrapper for common ADB operations
+# Usage: ./adb-toolkit info | debloat | backup | perms | network | battery
+set -e
+
+case "${1:-help}" in
+  info)
+    python3 device_info.py
+    ;;
+  debloat)
+    python3 permission_audit.py
+    ;;
+  backup)
+    python3 app_extractor.py --output ./backups
+    ;;
+  perms)
+    python3 permission_audit.py --csv perms.csv
+    echo "✓ Exported to perms.csv"
+    ;;
+  network)
+    python3 network_monitor.py --interval 2
+    ;;
+  battery)
+    adb bugreport bugreport.zip && python3 android-wakelock-analyzer/analyze.py bugreport.zip --top 10
+    ;;
+  help|*)
+    echo "ADB Toolkit CLI"
+    echo "Usage: ./adb-toolkit <command>"
+    echo ""
+    echo "Commands:"
+    echo "  info      - Full device report"
+    echo "  debloat   - Permission audit"
+    echo "  backup    - Extract all APKs"
+    echo "  perms     - Export permissions CSV"
+    echo "  network   - Real-time network monitor"
+    echo "  battery   - Analyze battery drain"
+    ;;
+esac
