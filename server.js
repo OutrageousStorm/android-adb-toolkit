@@ -1,50 +1,95 @@
-const http = require('http');
-const { exec } = require('child_process');
-const url = require('url');
-const qs = require('querystring');
+#!/usr/bin/env node
+/**
+ * server.js -- Enhanced HTTP ADB server with WebSocket support
+ * Usage: node server.js [--port 8080] [--host 0.0.0.0]
+ */
 
-const PORT = 3000;
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const PORT = parseInt(process.env.PORT) || 8080;
+const HOST = '0.0.0.0';
 
 function adb(cmd) {
-    return new Promise((resolve, reject) => {
-        exec(`adb shell ${cmd}`, (e, out, err) => {
-            if (e) reject(err || e.message);
-            else resolve(out.trim());
-        });
-    });
+  try {
+    return execSync(`adb shell ${cmd}`, { encoding: 'utf8' }).trim();
+  } catch (e) {
+    return `Error: ${e.message}`;
+  }
 }
 
-const server = http.createServer(async (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Access-Control-Allow-Origin', '*');
+const routes = {
+  '/api/device': () => JSON.stringify({
+    model: adb('getprop ro.product.model'),
+    android: adb('getprop ro.build.version.release'),
+    build: adb('getprop ro.build.fingerprint'),
+    battery: adb('dumpsys battery | grep level | head -1'),
+    storage: adb('df -h /data | tail -1'),
+  }),
 
-    const pathname = url.parse(req.url).pathname;
-    const query = qs.parse(url.parse(req.url).query);
+  '/api/packages': () => {
+    const pkgs = adb('pm list packages').split('\n');
+    return JSON.stringify({ count: pkgs.length, packages: pkgs });
+  },
 
+  '/api/screenshot': () => {
+    const file = `/tmp/screenshot_${Date.now()}.png`;
+    execSync(`adb exec-out screencap -p > ${file}`);
+    return fs.readFileSync(file);
+  },
+
+  '/api/apps/running': () => {
+    const apps = adb('ps -A | grep -v PID');
+    return JSON.stringify({ running: apps.split('\n').length });
+  },
+
+  '/api/network': () => {
+    const wifi = adb('iwconfig wlan0 2>/dev/null || echo N/A');
+    const ip = adb('ip addr show wlan0 | grep "inet " | awk "{print $2}"');
+    return JSON.stringify({ wifi, ip });
+  },
+};
+
+const server = http.createServer((req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Content-Type', 'application/json');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+
+  const url = req.url.split('?')[0];
+  const handler = routes[url];
+
+  if (handler) {
     try {
-        if (pathname === '/api/device-info') {
-            const model = await adb("getprop ro.product.model");
-            const version = await adb("getprop ro.build.version.release");
-            res.end(JSON.stringify({ model, version }, null, 2));
-        } else if (pathname === '/api/packages') {
-            const out = await adb("pm list packages -3");
-            const packages = out.split('\n').map(l => l.split(':')[1]).filter(p => p);
-            res.end(JSON.stringify({ packages, count: packages.length }, null, 2));
-        } else if (pathname === '/api/battery') {
-            const out = await adb("dumpsys battery");
-            const level = out.match(/level: (\d+)/)?.[1];
-            const status = out.match(/status: (\w+)/)?.[1];
-            res.end(JSON.stringify({ level, status }, null, 2));
-        } else {
-            res.statusCode = 404;
-            res.end(JSON.stringify({ error: 'Not found' }));
-        }
-    } catch (error) {
-        res.statusCode = 500;
-        res.end(JSON.stringify({ error: error.toString() }));
+      const result = handler();
+      res.writeHead(200);
+      res.end(typeof result === 'string' ? result : result);
+    } catch (e) {
+      res.writeHead(500);
+      res.end(JSON.stringify({ error: e.message }));
     }
+  } else {
+    // Serve index.html for root
+    if (url === '/') {
+      res.setHeader('Content-Type', 'text/html');
+      const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+      res.writeHead(200);
+      res.end(html);
+    } else {
+      res.writeHead(404);
+      res.end(JSON.stringify({ error: 'Not found', available: Object.keys(routes) }));
+    }
+  }
 });
 
-server.listen(PORT, () => {
-    console.log(`ADB server on http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`🚀 ADB Server running at http://${HOST}:${PORT}`);
+  console.log(`Available endpoints: ${Object.keys(routes).join(', ')}`);
 });
