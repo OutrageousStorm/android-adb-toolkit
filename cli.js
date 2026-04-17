@@ -1,55 +1,43 @@
 #!/usr/bin/env node
 /**
- * adb-toolkit CLI — Node.js wrapper for common ADB operations
- * Usage: npx android-adb-toolkit device-info
- *        npx android-adb-toolkit revoke-location com.facebook.katana
- *        npx android-adb-toolkit list-apps
+ * cli.js - Command-line ADB wrapper
+ * Usage: adb-toolkit <command> [args]
  */
-const { execSync } = require('child_process');
-const args = process.argv.slice(2);
+const { exec } = require('child_process');
 
 function adb(cmd) {
+  return new Promise((resolve, reject) => {
+    exec(`adb shell ${cmd}`, (err, stdout) => {
+      if (err) reject(err);
+      resolve(stdout.trim());
+    });
+  });
+}
+
+async function main() {
+  const [cmd, ...args] = process.argv.slice(2);
+  
   try {
-    return execSync(`adb shell ${cmd}`, { encoding: 'utf-8' }).trim();
-  } catch(e) {
-    return `ERROR: ${e.message}`;
+    switch(cmd) {
+      case 'app-info':
+        const pkg = args[0] || 'com.example.app';
+        const info = await adb(`dumpsys package ${pkg} | grep versionName`);
+        console.log(`App: ${pkg}\n${info}`);
+        break;
+      case 'screenshot':
+        exec(`adb exec-out screencap -p > screenshot_${Date.now()}.png`);
+        console.log('✓ Screenshot saved');
+        break;
+      case 'battery':
+        const bat = await adb('dumpsys battery');
+        console.log(bat.split('\n').filter(l => l.includes('level') || l.includes('status')).join('\n'));
+        break;
+      default:
+        console.log('Commands: app-info, screenshot, battery, devices');
+    }
+  } catch (e) {
+    console.error(`❌ ${e.message}`);
   }
 }
 
-const commands = {
-  'device-info': () => {
-    console.log('\n📱 Device Info\n');
-    console.log(`Model:    ${adb("getprop ro.product.model")}`);
-    console.log(`Android:  ${adb("getprop ro.build.version.release")}`);
-    console.log(`API:      ${adb("getprop ro.build.version.sdk")}`);
-    console.log(`Battery:  ${adb("dumpsys battery | grep level | awk '{print $2}'")}`);
-    console.log();
-  },
-  
-  'list-apps': () => {
-    const apps = adb("pm list packages -3").split('\n').map(l => l.split(':')[1]).filter(Boolean);
-    console.log(`\n📦 ${apps.length} user apps\n`);
-    apps.slice(0, 20).forEach(a => console.log(`  ${a}`));
-    if(apps.length > 20) console.log(`  ... and ${apps.length-20} more\n`);
-  },
-  
-  'revoke-location': (pkg) => {
-    if(!pkg) { console.log('Usage: revoke-location <package>'); return; }
-    adb(`pm revoke ${pkg} android.permission.ACCESS_FINE_LOCATION`);
-    adb(`pm revoke ${pkg} android.permission.ACCESS_COARSE_LOCATION`);
-    console.log(`✓ Location revoked from ${pkg}`);
-  },
-  
-  'disable-app': (pkg) => {
-    if(!pkg) { console.log('Usage: disable-app <package>'); return; }
-    adb(`pm disable-user --user 0 ${pkg}`);
-    console.log(`✓ Disabled: ${pkg}`);
-  },
-};
-
-const cmd = args[0];
-if(commands[cmd]) {
-  commands[cmd](args[1]);
-} else {
-  console.log('Available: device-info, list-apps, revoke-location, disable-app');
-}
+main();
