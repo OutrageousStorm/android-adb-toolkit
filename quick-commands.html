@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick ADB Commands</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0d1117; color: #c9d1d9; }
+        .container { max-width: 900px; margin: 40px auto; padding: 20px; }
+        h1 { margin-bottom: 30px; color: #58a6ff; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 15px; cursor: pointer; transition: all 0.2s; }
+        .card:hover { background: #1c2128; border-color: #58a6ff; }
+        .card h3 { color: #58a6ff; margin-bottom: 8px; font-size: 14px; }
+        .card p { font-size: 12px; color: #8b949e; margin-bottom: 10px; }
+        .card code { background: #0d1117; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+        .copy-btn { background: #238636; border: none; color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .copy-btn:hover { background: #2ea043; }
+        .category { margin: 30px 0; }
+        .category h2 { color: #d0a657; margin: 15px 0; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Quick ADB Commands</h1>
+        
+        <div class="category">
+            <h2>Device Info</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Model</h3>
+                    <p>Get device model name</p>
+                    <code>adb shell getprop ro.product.model</code>
+                    <button class="copy-btn" onclick="copy(this)">Copy</button>
+                </div>
+                <div class="card">
+                    <h3>Android Version</h3>
+                    <p>OS version and API level</p>
+                    <code>adb shell getprop ro.build.version.release</code>
+                    <button class="copy-btn" onclick="copy(this)">Copy</button>
+                </div>
+                <div class="card">
+                    <h3>Storage</h3>
+                    <p>Check available storage</p>
+                    <code>adb shell df -h /data</code>
+                    <button class="copy-btn" onclick="copy(this)">Copy</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="category">
+            <h2>Apps & Permissions</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>List Apps</h3>
+                    <p>Show all user-installed apps</p>
+                    <code>adb shell pm list packages -3</code>
+                    <button class="copy-btn" onclick="copy(this)">Copy</button>
+                </div>
+                <div class="card">
+                    <h3>Revoke Permission</h3>
+                    <p>Remove dangerous permission</p>
+                    <code>adb shell pm revoke pkg perm</code>
+                    <button class="copy-btn" onclick="copy(this)">Copy</button>
+                </div>
+                <div class="card">
+                    <h3>Uninstall App</h3>
+                    <p>Remove system app for user</p>
+                    <code>adb shell pm uninstall -k --user 0 pkg</code>
+                    <button class="copy-btn" onclick="copy(this)">Copy</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="category">
+            <h2>Settings & System</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Disable Ad Tracking</h3>
+                    <p>Limit advertising ID tracking</p>
+                    <code>adb shell settings put global limit_ad_tracking 1</code>
+                    <button class="copy-btn" onclick="copy(this)">Copy</button>
+                </div>
+                <div class="card">
+                    <h3>Turn Off Location</h3>
+                    <p>Disable all location services</p>
+                    <code>adb shell settings put secure location_mode 0</code>
+                    <button class="copy-btn" onclick="copy(this)">Copy</button>
+                </div>
+                <div class="card">
+                    <h3>Screenshot</h3>
+                    <p>Take and save screenshot</p>
+                    <code>adb exec-out screencap -p > screen.png</code>
+                    <button class="copy-btn" onclick="copy(this)">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copy(btn) {
+            const code = btn.previousElementSibling.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.innerText = "Copied!";
+                setTimeout(() => btn.innerText = "Copy", 2000);
+            });
+        }
+    </script>
+</body>
+</html>
