@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADB Command Builder</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #58a6ff; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }
+        label { display: block; margin-bottom: 8px; color: #79c0ff; font-weight: 500; }
+        input, select, textarea { width: 100%; padding: 8px; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; margin-bottom: 12px; font-family: monospace; }
+        button { background: #1f6feb; border: none; color: white; padding: 10px 16px; border-radius: 4px; cursor: pointer; margin-right: 8px; }
+        button:hover { background: #388bfd; }
+        .output { background: #0d1117; border: 1px solid #30363d; border-radius: 4px; padding: 12px; margin-top: 12px; font-family: monospace; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; }
+        .copy-btn { background: #238636; font-size: 12px; padding: 4px 8px; }
+        .copy-btn:hover { background: #2ea043; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 ADB Command Builder</h1>
+        <p style="margin-bottom: 20px; color: #8b949e;">Generate ADB shell commands without memorizing syntax</p>
+
+        <div class="grid">
+            <div class="card">
+                <h2 style="margin-bottom: 12px;">📱 Device Info</h2>
+                <button onclick="build('model')">Model</button>
+                <button onclick="build('android_version')">Android Version</button>
+                <button onclick="build('storage')">Storage</button>
+                <button onclick="build('battery')">Battery</button>
+                <div id="output-device" class="output"></div>
+            </div>
+
+            <div class="card">
+                <h2 style="margin-bottom: 12px;">🔧 Settings</h2>
+                <label>Setting Type:</label>
+                <select id="setting-type">
+                    <option value="secure">Secure</option>
+                    <option value="global">Global</option>
+                    <option value="system">System</option>
+                </select>
+                <label>Key:</label>
+                <input type="text" id="setting-key" placeholder="e.g. screen_brightness">
+                <label>Value:</label>
+                <input type="text" id="setting-value" placeholder="e.g. 128">
+                <button onclick="build('setting')">Build</button>
+                <div id="output-setting" class="output"></div>
+            </div>
+
+            <div class="card">
+                <h2 style="margin-bottom: 12px;">📦 Apps</h2>
+                <label>Package Name:</label>
+                <input type="text" id="package-name" placeholder="com.example.app">
+                <button onclick="build('list_packages')">List Packages</button>
+                <button onclick="build('uninstall')">Uninstall</button>
+                <button onclick="build('clear')">Clear Data</button>
+                <button onclick="build('force_stop')">Force Stop</button>
+                <div id="output-app" class="output"></div>
+            </div>
+
+            <div class="card">
+                <h2 style="margin-bottom: 12px;">🔐 Permissions</h2>
+                <label>Package:</label>
+                <input type="text" id="perm-package" placeholder="com.example.app">
+                <label>Permission:</label>
+                <input type="text" id="perm-name" placeholder="android.permission.CAMERA">
+                <button onclick="build('grant')">Grant</button>
+                <button onclick="build('revoke')">Revoke</button>
+                <div id="output-perm" class="output"></div>
+            </div>
+        </div>
+
+        <div class="card" style="grid-column: 1/-1;">
+            <h2 style="margin-bottom: 12px;">📋 Custom Command</h2>
+            <textarea id="custom-cmd" placeholder="adb shell " style="height: 80px;"></textarea>
+            <button onclick="copyToClipboard('custom-cmd')">📋 Copy</button>
+            <button onclick="document.getElementById('custom-cmd').value = ''">Clear</button>
+        </div>
+    </div>
+
+    <script>
+        function build(type) {
+            let cmd = "";
+            switch(type) {
+                case 'model':
+                    cmd = 'adb shell getprop ro.product.model';
+                    break;
+                case 'android_version':
+                    cmd = 'adb shell getprop ro.build.version.release';
+                    break;
+                case 'storage':
+                    cmd = 'adb shell df -h /data';
+                    break;
+                case 'battery':
+                    cmd = 'adb shell dumpsys battery';
+                    break;
+                case 'setting': {
+                    const st = document.getElementById('setting-type').value;
+                    const key = document.getElementById('setting-key').value;
+                    const val = document.getElementById('setting-value').value;
+                    cmd = `adb shell settings put ${st} ${key} ${val}`;
+                    show('output-setting', cmd);
+                    return;
+                }
+                case 'list_packages':
+                    cmd = 'adb shell pm list packages';
+                    break;
+                case 'uninstall': {
+                    const pkg = document.getElementById('package-name').value;
+                    cmd = `adb shell pm uninstall -k --user 0 ${pkg}`;
+                    show('output-app', cmd);
+                    return;
+                }
+                case 'clear': {
+                    const pkg = document.getElementById('package-name').value;
+                    cmd = `adb shell pm clear ${pkg}`;
+                    show('output-app', cmd);
+                    return;
+                }
+                case 'force_stop': {
+                    const pkg = document.getElementById('package-name').value;
+                    cmd = `adb shell am force-stop ${pkg}`;
+                    show('output-app', cmd);
+                    return;
+                }
+                case 'grant': {
+                    const pkg = document.getElementById('perm-package').value;
+                    const perm = document.getElementById('perm-name').value;
+                    cmd = `adb shell pm grant ${pkg} ${perm}`;
+                    show('output-perm', cmd);
+                    return;
+                }
+                case 'revoke': {
+                    const pkg = document.getElementById('perm-package').value;
+                    const perm = document.getElementById('perm-name').value;
+                    cmd = `adb shell pm revoke ${pkg} ${perm}`;
+                    show('output-perm', cmd);
+                    return;
+                }
+            }
+            if(type === 'model' || type === 'android_version' || type === 'storage' || type === 'battery') {
+                show('output-device', cmd);
+            }
+        }
+
+        function show(id, cmd) {
+            document.getElementById(id).textContent = cmd;
+        }
+
+        function copyToClipboard(id) {
+            const text = document.getElementById(id).value || document.getElementById(id).textContent;
+            navigator.clipboard.writeText(text);
+            alert("Copied!");
+        }
+    </script>
+</body>
+</html>
