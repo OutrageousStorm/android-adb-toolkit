@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ADB Web UI</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #0f0; }
+    .control { margin: 10px 0; padding: 10px; background: #2d2d2d; border: 1px solid #0f0; }
+    input { padding: 5px; margin: 5px; width: 300px; }
+    button { padding: 8px 15px; background: #0f0; color: black; border: none; cursor: pointer; }
+    button:hover { background: #0a0; }
+    #output { background: black; color: #0f0; padding: 10px; margin-top: 20px; height: 200px; overflow-y: auto; }
+    .success { color: #0f0; }
+    .error { color: #f00; }
+  </style>
+</head>
+<body>
+  <h1>📱 ADB Web Control</h1>
+  <p>⚠️ Requires adb-server running on localhost:5037</p>
+
+  <div class="control">
+    <h3>Device Info</h3>
+    <button onclick="runCmd('adb shell getprop ro.product.model')">Model</button>
+    <button onclick="runCmd('adb shell getprop ro.build.version.release')">Android Version</button>
+    <button onclick="runCmd('adb shell settings get global adb_enabled')">Check ADB Status</button>
+  </div>
+
+  <div class="control">
+    <h3>App Control</h3>
+    <input id="pkgInput" placeholder="Package name" value="com.example.app">
+    <button onclick="runCmd('adb shell pm list packages | grep ' + document.getElementById('pkgInput').value)">Search Apps</button>
+    <button onclick="runCmd('adb shell am force-stop ' + document.getElementById('pkgInput').value)">Force Stop</button>
+    <button onclick="runCmd('adb shell pm clear ' + document.getElementById('pkgInput').value)">Clear Data</button>
+  </div>
+
+  <div class="control">
+    <h3>Shell Command</h3>
+    <input id="cmdInput" placeholder="ADB command (without 'adb shell')" value="dumpsys battery">
+    <button onclick="runCustomCmd()">Run</button>
+  </div>
+
+  <div id="output">Output appears here...</div>
+
+  <script>
+    function runCmd(cmd) {
+      fetch('/api/cmd', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ command: cmd })
+      })
+      .then(r => r.json())
+      .then(data => {
+        const out = document.getElementById('output');
+        if (data.success) {
+          out.innerHTML = '<div class="success">✓ Success</div><pre>' + (data.output || '(empty)') + '</pre>';
+        } else {
+          out.innerHTML = '<div class="error">✗ Error: ' + (data.error || 'Unknown') + '</div>';
+        }
+      })
+      .catch(e => {
+        document.getElementById('output').innerHTML = '<div class="error">Connection failed</div>';
+      });
+    }
+    function runCustomCmd() {
+      const cmd = 'adb shell ' + document.getElementById('cmdInput').value;
+      runCmd(cmd);
+    }
+  </script>
+</body>
+</html>
