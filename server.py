@@ -1,74 +1,106 @@
 #!/usr/bin/env python3
 """
-server.py -- Simple REST API for ADB commands
-Expose device control via HTTP so web UI can talk to ADB backend
-Usage: python3 server.py --port 5000
+server.py -- Lightweight ADB HTTP API server for scripting
+Expose ADB commands as REST endpoints. Start server, make API calls from anywhere.
+Usage: python3 server.py --port 8080
+Then: curl http://localhost:8080/api/device/info
+      curl -X POST http://localhost:8080/api/shell -d "cmd=pm list packages"
 """
-from flask import Flask, request, jsonify
-import subprocess, json
+import subprocess, json, argparse, sys
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
+import threading
 
-app = Flask(__name__)
+def adb(cmd, serial=None):
+    pre = f"adb -s {serial}" if serial else "adb"
+    r = subprocess.run(f"{pre} shell {cmd}", shell=True, capture_output=True, text=True)
+    return {"stdout": r.stdout.strip(), "stderr": r.stderr.strip(), "code": r.returncode}
 
-def adb(cmd):
-    r = subprocess.run(f"adb shell {cmd}", shell=True, capture_output=True, text=True)
-    return r.stdout.strip(), r.returncode
+def adb_raw(cmd, serial=None):
+    pre = f"adb -s {serial}" if serial else "adb"
+    r = subprocess.run(f"{pre} {cmd}", shell=True, capture_output=True, text=True)
+    return {"stdout": r.stdout.strip(), "stderr": r.stderr.strip(), "code": r.returncode}
 
-@app.route('/api/device/info', methods=['GET'])
-def device_info():
-    """Get device model, Android version, storage"""
-    return jsonify({
-        'model': adb("getprop ro.product.model")[0],
-        'android': adb("getprop ro.build.version.release")[0],
-        'storage': adb("df -h /data | tail -1")[0],
-    })
+class ADBHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        path = urlparse(self.path).path
+        query = parse_qs(urlparse(self.path).query)
 
-@app.route('/api/device/battery', methods=['GET'])
-def battery():
-    """Get battery status"""
-    out = adb("dumpsys battery")[0]
-    return jsonify({'raw': out})
+        if path == "/api/devices":
+            result = adb_raw("devices")
+            devices = [l.split()[0] for l in result["stdout"].splitlines()[1:] if l.strip()]
+            self.send_json({"devices": devices})
 
-@app.route('/api/apps/list', methods=['GET'])
-def list_apps():
-    """List installed packages"""
-    out = adb("pm list packages -3")[0]
-    apps = [l.split(":")[-1] for l in out.splitlines() if l.startswith("package:")]
-    return jsonify({'apps': apps, 'count': len(apps)})
+        elif path == "/api/device/info":
+            serial = query.get("serial", [None])[0]
+            info = {
+                "model": adb("getprop ro.product.model", serial)["stdout"],
+                "android": adb("getprop ro.build.version.release", serial)["stdout"],
+                "sdk": adb("getprop ro.build.version.sdk", serial)["stdout"],
+                "battery": adb("dumpsys battery | grep level", serial)["stdout"],
+            }
+            self.send_json(info)
 
-@app.route('/api/apps/install', methods=['POST'])
-def install_app():
-    """Install APK from path"""
-    path = request.json.get('apk_path')
-    out, code = adb(f"install {path}")
-    return jsonify({'status': 'success' if code == 0 else 'failed', 'output': out})
+        elif path == "/api/packages":
+            serial = query.get("serial", [None])[0]
+            result = adb("pm list packages", serial)
+            packages = [l.split(":")[1] for l in result["stdout"].splitlines() if l.startswith("package:")]
+            self.send_json({"count": len(packages), "packages": packages[:50]})
 
-@app.route('/api/settings/get', methods=['GET'])
-def get_setting():
-    """Get a system setting"""
-    namespace = request.args.get('namespace', 'system')  # system, secure, global
-    key = request.args.get('key')
-    val = adb(f"settings get {namespace} {key}")[0]
-    return jsonify({'key': key, 'value': val})
+        else:
+            self.send_error(404)
 
-@app.route('/api/settings/set', methods=['POST'])
-def set_setting():
-    """Set a system setting"""
-    data = request.json
-    namespace = data.get('namespace', 'system')
-    key = data.get('key')
-    val = data.get('value')
-    adb(f"settings put {namespace} {key} {val}")
-    return jsonify({'status': 'ok'})
+    def do_POST(self):
+        path = urlparse(self.path).path
+        content_len = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(content_len).decode()
+        params = parse_qs(body)
 
-@app.route('/api/shell', methods=['POST'])
-def shell():
-    """Execute arbitrary shell command"""
-    cmd = request.json.get('cmd')
-    if not cmd:
-        return jsonify({'error': 'no cmd'}), 400
-    out, code = adb(cmd)
-    return jsonify({'output': out, 'code': code})
+        if path == "/api/shell":
+            cmd = params.get("cmd", [""])[0]
+            serial = params.get("serial", [None])[0]
+            if not cmd:
+                self.send_error(400)
+                return
+            result = adb(cmd, serial)
+            self.send_json(result)
+
+        elif path == "/api/install":
+            # Expect: apk_path (on device or PC)
+            apk = params.get("apk", [""])[0]
+            serial = params.get("serial", [None])[0]
+            result = adb_raw(f"install {apk}", serial)
+            self.send_json(result)
+
+        else:
+            self.send_error(404)
+
+    def send_json(self, data):
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode())
+
+    def log_message(self, format, *args):
+        # Suppress default logging
+        pass
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--host", default="0.0.0.0")
+    args = parser.parse_args()
+
+    server = HTTPServer((args.host, args.port), ADBHandler)
+    print(f"🚀 ADB HTTP Server running on {args.host}:{args.port}")
+    print(f"Try: curl http://localhost:{args.port}/api/devices")
+    print(f"     curl http://localhost:{args.port}/api/device/info?serial=device_serial")
+    print(f"     curl -X POST http://localhost:{args.port}/api/shell -d 'cmd=getprop ro.product.model'")
+    print("\nPress Ctrl+C to stop.")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopped.")
 
 if __name__ == "__main__":
-    print("ADB REST API Server running on http://localhost:5000")
-    app.run(debug=False, port=5000)
+    main()
