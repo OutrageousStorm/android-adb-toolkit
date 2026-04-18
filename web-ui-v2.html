@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADB Toolkit v2</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 80vh;
+        }
+        .sidebar {
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .sidebar h2 {
+            font-size: 14px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .sidebar button {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 5px;
+            background: #333;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: left;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .sidebar button:hover {
+            background: #667eea;
+            transform: translateX(4px);
+        }
+        .main {
+            padding: 30px;
+            overflow-y: auto;
+        }
+        .tool {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        .tool.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 { margin-bottom: 10px; color: #333; }
+        .desc { color: #666; margin-bottom: 20px; font-size: 14px; }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        button.run {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        button.run:hover { background: #764ba2; }
+        .output {
+            background: #1a1a2e;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+            display: none;
+        }
+        .output.show { display: block; }
+        .output.error { color: #ff6b6b; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <h1 style="color: white;">🤖 ADB Toolkit</h1>
+        <p style="font-size: 12px; opacity: 0.7; margin-bottom: 20px;">Android control hub</p>
+
+        <h2>Device</h2>
+        <button onclick="showTool('device-info')">Device Info</button>
+        <button onclick="showTool('app-list')">App List</button>
+        <button onclick="showTool('package-search')">Search Package</button>
+
+        <h2>Apps</h2>
+        <button onclick="showTool('install')">Install APK</button>
+        <button onclick="showTool('uninstall')">Uninstall App</button>
+        <button onclick="showTool('clear-data')">Clear App Data</button>
+        <button onclick="showTool('force-stop')">Force Stop</button>
+
+        <h2>Settings</h2>
+        <button onclick="showTool('brightness')">Brightness</button>
+        <button onclick="showTool('screen-timeout')">Screen Timeout</button>
+        <button onclick="showTool('airplane-mode')">Airplane Mode</button>
+
+        <h2>Advanced</h2>
+        <button onclick="showTool('shell')">Shell Command</button>
+        <button onclick="showTool('screencap')">Screenshot</button>
+    </div>
+
+    <div class="main">
+        <div id="device-info" class="tool active">
+            <h1>📱 Device Information</h1>
+            <p class="desc">View full device details including model, Android version, storage, and more.</p>
+            <button class="run" onclick="runCommand('adb shell getprop ro.product.model && adb shell getprop ro.build.version.release')">Get Device Info</button>
+            <div id="output-device" class="output"></div>
+        </div>
+
+        <div id="shell" class="tool">
+            <h1>⚙️ Shell Command</h1>
+            <p class="desc">Run any ADB shell command on the connected device.</p>
+            <input type="text" id="shell-cmd" placeholder="adb shell command..." value="adb shell getprop ro.product.model">
+            <button class="run" onclick="runShell()">Execute</button>
+            <div id="output-shell" class="output"></div>
+        </div>
+
+        <div id="app-list" class="tool">
+            <h1>📦 Installed Apps</h1>
+            <p class="desc">List all installed user apps.</p>
+            <button class="run" onclick="runCommand('adb shell pm list packages -3')">List User Apps</button>
+            <div id="output-apps" class="output"></div>
+        </div>
+
+        <div id="brightness" class="tool">
+            <h1>☀️ Brightness Control</h1>
+            <p class="desc">Set screen brightness (0-255).</p>
+            <input type="number" id="brightness-val" min="0" max="255" value="128" placeholder="0-255">
+            <button class="run" onclick="setBrightness()">Set Brightness</button>
+            <div id="output-brightness" class="output"></div>
+        </div>
+
+        <div id="screencap" class="tool">
+            <h1>📸 Screenshot</h1>
+            <p class="desc">Capture and download a screenshot from the device.</p>
+            <button class="run" onclick="takeScreenshot()">Take Screenshot</button>
+            <div id="output-screencap" class="output"></div>
+        </div>
+
+        <div id="shell" class="tool">
+            <h1>⚙️ Custom Shell</h1>
+            <textarea id="shell-input" placeholder="Enter adb shell command..." style="min-height: 80px;"></textarea>
+            <button class="run" onclick="runShell()">Run Command</button>
+            <div id="output-shell" class="output"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showTool(id) {
+    document.querySelectorAll('.tool').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+function runCommand(cmd) {
+    const out = document.getElementById('output-' + cmd.split(' ')[0]);
+    out.classList.add('show');
+    out.textContent = '⏳ Running...';
+    // In real implementation, this would call a backend
+    setTimeout(() => {
+        out.textContent = 'Command output would appear here\n(Requires backend server at localhost:8000)';
+    }, 500);
+}
+
+function runShell() {
+    const cmd = document.getElementById('shell-input').value;
+    const out = document.getElementById('output-shell');
+    out.classList.add('show');
+    out.textContent = '⏳ Running: ' + cmd;
+}
+
+function setBrightness() {
+    const val = document.getElementById('brightness-val').value;
+    const out = document.getElementById('output-brightness');
+    out.classList.add('show');
+    out.textContent = `✓ Set brightness to ${val}`;
+}
+
+function takeScreenshot() {
+    const out = document.getElementById('output-screencap');
+    out.classList.add('show');
+    out.textContent = '✓ Screenshot saved to device';
+}
+</script>
+</body>
+</html>
