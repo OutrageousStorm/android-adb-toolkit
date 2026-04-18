@@ -1,20 +1,44 @@
 # Features & Roadmap
 
-## Current
+## ✅ Implemented
 
-- Device info, app management, file browser
-- Permission grant/revoke, settings control
-- APK install, data clear, debloat (safe list)
+### Device Management
+- [x] Device info snapshot (model, Android version, storage)
+- [x] Reboot options (system, recovery, bootloader, fastboot)
+- [x] Wireless ADB setup
+- [x] Device screenshot & video recording
 
-## Planned
+### App Management
+- [x] Install/uninstall APKs
+- [x] Permission viewer
+- [x] App data backup/restore
+- [x] App launcher with recent apps list
 
-- Backup/restore (APK + storage)
-- Network monitor (live TCP connections)
-- Screencap/record
-- Notification monitor
-- Frida integration
-- Automation builder
+### System Tweaks
+- [x] Brightness/volume controls
+- [x] WiFi/Bluetooth toggle
+- [x] Developer options toggle
+- [x] USB debugging control
 
-## Architecture
+### Network
+- [x] Logcat viewer (real-time)
+- [x] Network interface info
+- [x] Port forwarding setup
 
-Web UI → Flask backend → ADB shell → Android device
+## 🚀 Planned
+
+### v2.0
+- [ ] Magisk/KernelSU detection
+- [ ] Battery usage breakdown per app
+- [ ] Network traffic monitor (real-time)
+- [ ] Package extractor with decompile option
+
+### v3.0
+- [ ] Material UI redesign
+- [ ] WebSocket live updates
+- [ ] Multi-device support
+- [ ] Automated task scheduler
+
+---
+
+*Last updated: 2026-04-18*
