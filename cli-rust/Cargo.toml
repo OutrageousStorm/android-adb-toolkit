@@ -1,0 +1,10 @@
+[package]
+name = "adb-cli-rs"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "adb-cli-rs"
+path = "src/main.rs"
+
+[dependencies]
