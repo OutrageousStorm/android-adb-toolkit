@@ -1,109 +1,86 @@
 #!/usr/bin/env python3
 """
-cli.py -- Command-line interface for ADB toolkit
-Easier than remembering adb commands. Autocomplete & history.
-Usage: python3 cli.py
+cli.py -- Command-line interface for ADB operations
+Powers the web UI but also works standalone.
+Usage: python3 cli.py device-info
+       python3 cli.py install-apk path/to/app.apk
+       python3 cli.py debloat --confirm
 """
-import subprocess, sys, readline, argparse
+import subprocess, sys, argparse, json
 from pathlib import Path
 
-class ADBCli:
-    def __init__(self):
-        self.history_file = Path.home() / ".adb_cli_history"
-        self.load_history()
+def adb(cmd):
+    r = subprocess.run(f"adb shell {cmd}", shell=True, capture_output=True, text=True)
+    return r.stdout.strip()
 
-    def load_history(self):
-        if self.history_file.exists():
-            with open(self.history_file) as f:
-                for line in f:
-                    readline.add_history(line.strip())
+def device_info():
+    info = {
+        "model": adb("getprop ro.product.model"),
+        "android": adb("getprop ro.build.version.release"),
+        "api": adb("getprop ro.build.version.sdk"),
+        "serial": adb("getprop ro.serialno"),
+        "fingerprint": adb("getprop ro.build.fingerprint"),
+    }
+    return info
 
-    def save_history(self):
-        with open(self.history_file, "a") as f:
-            f.write(readline.get_history_item(readline.get_current_history_length()) + "\n")
+def install_apk(path):
+    if not Path(path).exists():
+        return {"error": f"APK not found: {path}"}
+    result = subprocess.run(f"adb install {path}", shell=True, capture_output=True, text=True)
+    return {"success": "Success" in result.stdout}
 
-    def adb(self, cmd):
-        r = subprocess.run(f"adb shell {cmd}", shell=True, capture_output=True, text=True)
-        return r.stdout.strip() or r.stderr.strip() or "OK"
+def list_packages(user_only=False):
+    flag = "-3" if user_only else ""
+    out = adb(f"pm list packages {flag}")
+    return [l.split(":")[1] for l in out.splitlines() if l.startswith("package:")]
 
-    def cmd_getinfo(self, args):
-        """Get device info"""
-        props = [
-            ("Model", "getprop ro.product.model"),
-            ("Android", "getprop ro.build.version.release"),
-            ("RAM", "cat /proc/meminfo | grep MemTotal"),
-            ("Storage", "df -h /data | tail -1"),
-        ]
-        for label, cmd in props:
-            val = self.adb(cmd)
-            print(f"  {label:<15} {val}")
-
-    def cmd_perms(self, args):
-        """Revoke permissions interactively"""
-        pkg = args.pkg if hasattr(args, 'pkg') else input("Package name: ").strip()
-        if not pkg: return
-        perms = [
-            "ACCESS_FINE_LOCATION",
-            "READ_CONTACTS",
-            "RECORD_AUDIO",
-            "READ_SMS",
-            "CAMERA",
-        ]
-        print(f"\nPermissions to revoke from {pkg}:")
-        for p in perms:
-            revoke = input(f"  {p}? (y/N): ").strip().lower() == 'y'
-            if revoke:
-                self.adb(f"pm revoke {pkg} android.permission.{p}")
-                print(f"    ✓ Revoked")
-
-    def cmd_apps(self, args):
-        """List user apps"""
-        out = self.adb("pm list packages -3")
-        apps = [l.split(":")[1] for l in out.splitlines() if l.startswith("package:")]
-        print(f"\nFound {len(apps)} user apps:")
-        for app in sorted(apps)[:20]:
-            print(f"  {app}")
-        if len(apps) > 20:
-            print(f"  ... and {len(apps)-20} more")
-
-    def cmd_screenshot(self, args):
-        """Take screenshot"""
-        filename = args.file if hasattr(args, 'file') else f"screenshot_{__import__('time').strftime('%Y%m%d_%H%M%S')}.png"
-        subprocess.run(f"adb exec-out screencap -p > {filename}", shell=True)
-        print(f"✓ Saved: {filename}")
-
-    def interactive(self):
-        """Interactive shell"""
-        print("\n🔧 ADB CLI — type 'help' for commands\n")
-        while True:
-            try:
-                cmd = input("adb> ").strip()
-                if not cmd: continue
-                if cmd == "help":
-                    print("  getinfo    - device info")
-                    print("  perms PKG  - revoke permissions")
-                    print("  apps       - list apps")
-                    print("  screenshot - take screenshot")
-                    print("  shell CMD  - run adb shell command")
-                    print("  quit       - exit")
-                elif cmd == "quit": break
-                elif cmd.startswith("getinfo"): self.cmd_getinfo(None)
-                elif cmd.startswith("perms"): self.cmd_perms(type('args', (), {'pkg': cmd.split()[1] if len(cmd.split()) > 1 else None})())
-                elif cmd.startswith("apps"): self.cmd_apps(None)
-                elif cmd.startswith("screenshot"): self.cmd_screenshot(type('args', (), {'file': None})())
-                elif cmd.startswith("shell "):
-                    result = self.adb(cmd[6:])
-                    print(result)
-                else:
-                    print(f"Unknown command: {cmd}")
-                self.save_history()
-            except KeyboardInterrupt:
-                print("\nExiting...")
-                break
+def debloat_safe(confirm=False):
+    SAFE_REMOVABLE = [
+        "com.facebook.katana", "com.facebook.appmanager", "com.facebook.services",
+        "com.instagram.android", "com.twitter.android", "com.snapchat.android",
+        "com.netflix.mediaclient", "com.spotify.music",
+    ]
+    installed = set(list_packages(user_only=True))
+    targets = [p for p in SAFE_REMOVABLE if p in installed]
+    
+    if not confirm:
+        return {"count": len(targets), "packages": targets, "confirm_needed": True}
+    
+    removed = []
+    for pkg in targets:
+        r = adb(f"pm uninstall -k --user 0 {pkg}")
+        if "Success" in r:
+            removed.append(pkg)
+    return {"removed": removed, "count": len(removed)}
 
 def main():
-    cli = ADBCli()
-    cli.interactive()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=["device-info", "install-apk", "list-apps", "debloat"])
+    parser.add_argument("--apk", help="APK file for install-apk")
+    parser.add_argument("--user-only", action="store_true", help="List user apps only")
+    parser.add_argument("--confirm", action="store_true", help="Confirm debloat")
+    parser.add_argument("--json", action="store_true", help="Output as JSON")
+    args = parser.parse_args()
+
+    if args.command == "device-info":
+        result = device_info()
+    elif args.command == "install-apk":
+        if not args.apk:
+            print("--apk required"); sys.exit(1)
+        result = install_apk(args.apk)
+    elif args.command == "list-apps":
+        result = {"packages": list_packages(args.user_only)}
+    elif args.command == "debloat":
+        result = debloat_safe(args.confirm)
+
+    if args.json:
+        print(json.dumps(result, indent=2))
+    else:
+        for k, v in result.items():
+            if isinstance(v, list) and len(v) > 3:
+                print(f"{k}: {len(v)} items")
+            else:
+                print(f"{k}: {v}")
 
 if __name__ == "__main__":
     main()
