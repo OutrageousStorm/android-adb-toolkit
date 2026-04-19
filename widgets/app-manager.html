@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ADB App Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #1e1e1e; color: #fff; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { margin-bottom: 20px; color: #4CAF50; }
+        .search { margin-bottom: 20px; }
+        input[type="text"] { width: 100%; padding: 10px; background: #2d2d2d; border: 1px solid #444; color: #fff; border-radius: 4px; }
+        .app-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .app-card { background: #2d2d2d; border: 1px solid #444; border-radius: 8px; padding: 15px; }
+        .app-name { font-weight: bold; margin-bottom: 8px; word-break: break-all; }
+        .app-size { font-size: 12px; color: #aaa; margin-bottom: 10px; }
+        .btn { padding: 6px 12px; margin: 4px 2px 0 0; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-info { background: #2196F3; color: white; }
+        .btn-launch { background: #4CAF50; color: white; }
+        .btn-stop { background: #FF9800; color: white; }
+        .btn-uninstall { background: #f44336; color: white; }
+        .btn:hover { opacity: 0.8; }
+        .loading { text-align: center; color: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 ADB App Manager</h1>
+        <div class="search">
+            <input type="text" id="search" placeholder="Search apps...">
+        </div>
+        <div class="app-list" id="apps">
+            <div class="loading">Loading apps...</div>
+        </div>
+    </div>
+
+    <script>
+        let allApps = [];
+
+        function adbCommand(cmd) {
+            // This would connect to a backend that runs ADB
+            // For now, return mock data
+            return fetch('/api/adb', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: cmd })
+            }).then(r => r.json());
+        }
+
+        async function loadApps() {
+            try {
+                const result = await adbCommand('pm list packages -3');
+                allApps = result.packages || [];
+                renderApps(allApps);
+            } catch (e) {
+                document.getElementById('apps').innerHTML = `<div class="loading" style="color: red;">Error: ${e.message}</div>`;
+            }
+        }
+
+        function renderApps(apps) {
+            const html = apps.map(pkg => `
+                <div class="app-card">
+                    <div class="app-name">${pkg}</div>
+                    <button class="btn btn-info" onclick="getInfo('${pkg}')">Info</button>
+                    <button class="btn btn-launch" onclick="launch('${pkg}')">Launch</button>
+                    <button class="btn btn-stop" onclick="stop('${pkg}')">Stop</button>
+                    <button class="btn btn-uninstall" onclick="uninstall('${pkg}')">Uninstall</button>
+                </div>
+            `).join('');
+            document.getElementById('apps').innerHTML = html || '<div class="loading">No apps found</div>';
+        }
+
+        document.getElementById('search').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allApps.filter(p => p.includes(query));
+            renderApps(filtered);
+        });
+
+        function launch(pkg) {
+            adbCommand(`monkey -p ${pkg} -c android.intent.category.LAUNCHER 1`).then(() => alert(`Launched ${pkg}`));
+        }
+
+        function stop(pkg) {
+            adbCommand(`am force-stop ${pkg}`).then(() => alert(`Stopped ${pkg}`));
+        }
+
+        function uninstall(pkg) {
+            if (confirm(`Uninstall ${pkg}?`)) {
+                adbCommand(`pm uninstall ${pkg}`).then(() => alert(`Uninstalled ${pkg}`));
+            }
+        }
+
+        function getInfo(pkg) {
+            adbCommand(`dumpsys package ${pkg}`).then(info => {
+                alert(`${pkg}
+
+${info.slice(0, 200)}`);
+            });
+        }
+
+        loadApps();
+    </script>
+</body>
+</html>
