@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ADB Interactive Shell</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        body {
+            font-family: 'Monaco', 'Menlo', monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { margin-bottom: 20px; color: #58a6ff; }
+        .shell {
+            background: #010409;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .output { white-space: pre-wrap; word-wrap: break-word; }
+        .prompt { color: #79c0ff; }
+        .error { color: #f85149; }
+        .success { color: #3fb950; }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            flex: 1;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Monaco', monospace;
+            font-size: 13px;
+        }
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover { background: #2ea043; }
+        .quickcmd {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .quickcmd button {
+            padding: 6px 10px;
+            font-size: 12px;
+            background: #1f6feb;
+            text-align: left;
+        }
+        .quickcmd button:hover { background: #388bfd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 ADB Interactive Shell</h1>
+        
+        <div class="quickcmd">
+            <button onclick="cmd('adb devices')">List devices</button>
+            <button onclick="cmd('adb shell dumpsys battery')">Battery info</button>
+            <button onclick="cmd('adb shell getprop ro.product.model')">Device model</button>
+            <button onclick="cmd('adb shell pm list packages | wc -l')">App count</button>
+            <button onclick="cmd('adb shell settings get global limit_ad_tracking')">Ad tracking</button>
+            <button onclick="cmd('adb shell cat /proc/meminfo | head -5')">RAM info</button>
+            <button onclick="cmd('adb shell dumpsys power | grep mScreenOn')">Screen state</button>
+            <button onclick="cmd('adb shell wm size')">Screen size</button>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="cmdInput" placeholder="adb shell ..." onkeypress="if(event.key==='Enter') cmd()">
+            <button onclick="cmd()">Execute</button>
+            <button onclick="document.querySelector('.shell').innerHTML=''; return false;" style="background: #da3633;">Clear</button>
+        </div>
+
+        <div class="shell" id="output"></div>
+    </div>
+
+    <script>
+        const output = document.getElementById('output');
+        const input = document.getElementById('cmdInput');
+
+        function cmd(command = null) {
+            if (!command) command = input.value.trim();
+            if (!command) return;
+
+            const line = document.createElement('div');
+            line.innerHTML = `<span class="prompt">$ ${command}</span>`;
+            output.appendChild(line);
+
+            // Simulate WebSocket to local adb-server
+            // In production, this would connect to a backend that runs `adb shell <cmd>`
+            const result = document.createElement('div');
+            result.textContent = '(Run via backend HTTP endpoint)
+';
+            result.classList.add('success');
+            output.appendChild(result);
+
+            input.value = '';
+            output.scrollTop = output.scrollHeight;
+        }
+
+        input.focus();
+    </script>
+</body>
+</html>
