@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ADB Toolkit — Web UI</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0; padding: 20px;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        h1 { margin: 0; font-size: 2.5em; }
+        .tagline { font-size: 1.1em; opacity: 0.9; margin-top: 5px; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .card h3 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .card p {
+            margin: 0 0 15px 0;
+            font-size: 0.95em;
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: 0.2s;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            border-left-color: #4caf50;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+        
+        .code {
+            background: #282c34;
+            color: #abb2bf;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: "Monaco", "Courier New", monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 ADB Toolkit</h1>
+            <p class="tagline">Web interface for Android debugging</p>
+        </header>
+        
+        <div style="padding: 30px;">
+            <div id="status" class="status" style="display:none;"></div>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>📱 Device Info</h3>
+                    <p>Get full device information — model, Android version, storage, battery.</p>
+                    <button class="btn" onclick="runCommand('python3 device_info.py')">Get Device Info</button>
+                </div>
+                
+                <div class="card">
+                    <h3>🔐 Permission Audit</h3>
+                    <p>Scan every installed app for dangerous permissions.</p>
+                    <button class="btn" onclick="runCommand('python3 permission_audit.py')">Audit Permissions</button>
+                </div>
+                
+                <div class="card">
+                    <h3>📦 Extract APKs</h3>
+                    <p>Bulk extract APKs from your device.</p>
+                    <button class="btn" onclick="runCommand('python3 app_extractor.py')">Extract APKs</button>
+                </div>
+                
+                <div class="card">
+                    <h3>🗑️ Smart Debloat</h3>
+                    <p>Remove bloatware with safety checks — won't touch system apps.</p>
+                    <button class="btn" onclick="runCommand('bash smart_debloat.sh')">Launch Debloater</button>
+                </div>
+                
+                <div class="card">
+                    <h3>📡 Network Monitor</h3>
+                    <p>Watch real-time network connections from your device.</p>
+                    <button class="btn" onclick="runCommand('python3 network_monitor.py')">Monitor Network</button>
+                </div>
+                
+                <div class="card">
+                    <h3>💾 Full Backup</h3>
+                    <p>Backup all APKs, device info, and storage to a single folder.</p>
+                    <button class="btn" onclick="runCommand('bash backup_all.sh')">Backup Device</button>
+                </div>
+                
+                <div class="card">
+                    <h3>⚙️ System Settings</h3>
+                    <p>Change system settings via ADB.</p>
+                    <div class="code">
+adb shell settings put system screen_brightness 200<br>
+adb shell settings put global airplane_mode_on 1<br>
+adb shell settings put secure location_mode 0
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>📸 Screenshot</h3>
+                    <p>Capture device screen and pull to your computer.</p>
+                    <div class="code">
+adb exec-out screencap -p > screenshot.png
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🔧 Advanced Commands</h3>
+                    <p>Run custom ADB commands.</p>
+                    <input type="text" id="customCmd" placeholder="adb shell command..." style="width:100%; padding:8px; margin:10px 0; border:1px solid #ddd; border-radius:4px;">
+                    <button class="btn" onclick="runCustom()">Execute</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>🤖 <strong>ADB Toolkit</strong> — Android power user tools</p>
+            <p style="margin: 5px 0;">
+                📚 <a href="https://github.com/OutrageousStorm/android-adb-toolkit" style="color:#667eea;">GitHub</a> •
+                📖 <a href="https://github.com/OutrageousStorm/android-adb-cheatsheet" style="color:#667eea;">ADB Cheatsheet</a>
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        function runCommand(cmd) {
+            const status = document.getElementById('status');
+            status.textContent = `Running: ${cmd}...`;
+            status.className = 'status';
+            status.style.display = 'block';
+            
+            // In a real app, this would call a backend
+            // For now, just show instructions
+            setTimeout(() => {
+                status.innerHTML = `
+                    <strong>✅ Run this in your terminal:</strong><br>
+                    <code style="background:#282c34; color:#abb2bf; padding:10px; margin-top:10px; display:block; border-radius:4px; font-family:monospace;">${cmd}</code>
+                `;
+                status.className = 'status success';
+            }, 500);
+        }
+        
+        function runCustom() {
+            const cmd = document.getElementById('customCmd').value;
+            if (!cmd) return;
+            runCommand('adb shell ' + cmd);
+        }
+    </script>
+</body>
+</html>
