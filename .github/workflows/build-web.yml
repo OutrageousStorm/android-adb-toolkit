@@ -1,0 +1,25 @@
+name: Build Web Toolkit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "server.py"
+      - "docker-compose.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: |
+          docker build -t android-adb-toolkit:latest .
+          docker save android-adb-toolkit:latest | gzip > toolkit.tar.gz
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-image
+          path: toolkit.tar.gz
