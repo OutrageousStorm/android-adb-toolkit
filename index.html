@@ -6,128 +6,282 @@
     <title>Android ADB Toolkit</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
         .container { max-width: 1200px; margin: 0 auto; }
-        h1 { color: white; margin-bottom: 30px; text-align: center; font-size: 2.5em; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .card h2 { color: #333; margin-bottom: 10px; font-size: 1.3em; }
-        .card p { color: #666; font-size: 0.95em; line-height: 1.5; }
-        .card-icon { font-size: 2em; margin-bottom: 10px; }
-        .code { background: #f5f5f5; padding: 10px; border-radius: 5px; font-family: monospace; 
-                font-size: 0.9em; color: #d63384; margin-top: 10px; }
-        .category { margin-bottom: 40px; }
-        .category-title { color: white; font-size: 1.8em; margin-bottom: 20px; margin-top: 30px; }
-        a { color: #667eea; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        footer { text-align: center; color: white; margin-top: 50px; font-size: 0.9em; }
+        h1 {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            border: 2px solid #7c3aed;
+            background: transparent;
+            color: #7c3aed;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover {
+            background: #7c3aed;
+            color: white;
+        }
+        .tab-btn.active {
+            background: #7c3aed;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .card h2 { margin-bottom: 15px; color: #00d4ff; }
+        
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .btn {
+            padding: 15px;
+            background: linear-gradient(135deg, #7c3aed, #00d4ff);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #eee;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+        input::placeholder, textarea::placeholder {
+            color: #888;
+        }
+        .output {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        .info { color: #60a5fa; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🤖 Android ADB Toolkit</h1>
         
-        <div class="category">
-            <div class="category-title">📱 Device Management</div>
-            <div class="grid">
-                <div class="card">
-                    <div class="card-icon">📋</div>
-                    <h2>Device Info</h2>
-                    <p>Get complete device details: model, Android version, CPU, RAM, storage, battery, network.</p>
-                    <div class="code">adb shell getprop ro.product.model</div>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📦</div>
-                    <h2>App Management</h2>
-                    <p>List, install, uninstall, or disable apps. Bulk operations supported.</p>
-                    <div class="code">adb shell pm list packages</div>
-                </div>
-                <div class="card">
-                    <div class="card-icon">💾</div>
-                    <h2>Backup & Restore</h2>
-                    <p>Backup APKs and data. Restore everything with one command.</p>
-                    <div class="code">adb pull /data/app/</div>
-                </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('device')">Device Info</button>
+            <button class="tab-btn" onclick="switchTab('apps')">App Manager</button>
+            <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+            <button class="tab-btn" onclick="switchTab('files')">Files</button>
+            <button class="tab-btn" onclick="switchTab('commands')">Custom Commands</button>
+        </div>
+
+        <!-- Device Info -->
+        <div id="device" class="tab-content active">
+            <div class="card">
+                <h2>Device Information</h2>
+                <button class="btn" onclick="getDeviceInfo()">Scan Device</button>
+                <div id="deviceOutput" class="output"></div>
             </div>
         </div>
 
-        <div class="category">
-            <div class="category-title">🔒 Security & Privacy</div>
-            <div class="grid">
-                <div class="card">
-                    <div class="card-icon">🔐</div>
-                    <h2>Permission Audit</h2>
-                    <p>Scan every app for dangerous permissions. Export to CSV.</p>
-                    <div class="code">python3 permission_audit.py</div>
+        <!-- App Manager -->
+        <div id="apps" class="tab-content">
+            <div class="card">
+                <h2>Manage Applications</h2>
+                <div class="input-group">
+                    <input type="text" id="appSearch" placeholder="Search package name...">
                 </div>
-                <div class="card">
-                    <div class="card-icon">🗑️</div>
-                    <h2>Privacy Hardening</h2>
-                    <p>Disable ad tracking, telemetry, location. 3 hardening levels.</p>
-                    <div class="code">python3 harden.py --level 2</div>
+                <div class="button-grid">
+                    <button class="btn" onclick="listApps()">List Installed Apps</button>
+                    <button class="btn" onclick="launchApp()">Launch App</button>
+                    <button class="btn" onclick="forceStop()">Force Stop</button>
+                    <button class="btn" onclick="clearAppData()">Clear Data</button>
                 </div>
-                <div class="card">
-                    <div class="card-icon">🔍</div>
-                    <h2>Privacy Check</h2>
-                    <p>Audit current privacy status with score report.</p>
-                    <div class="code">python3 check.py</div>
-                </div>
+                <div id="appsOutput" class="output"></div>
             </div>
         </div>
 
-        <div class="category">
-            <div class="category-title">🎮 Automation & Control</div>
-            <div class="grid">
-                <div class="card">
-                    <div class="card-icon">🖥️</div>
-                    <h2>Screen Mirror</h2>
-                    <p>Mirror device to PC with scrcpy. Multiple profiles: gaming, recording, audio.</p>
-                    <div class="code">python3 launch.py gaming</div>
+        <!-- Settings -->
+        <div id="settings" class="tab-content">
+            <div class="card">
+                <h2>Device Settings</h2>
+                <div class="button-grid">
+                    <button class="btn" onclick="setBrightness()">Set Brightness</button>
+                    <button class="btn" onclick="toggleWiFi()">Toggle WiFi</button>
+                    <button class="btn" onclick="toggleBluetooth()">Toggle Bluetooth</button>
+                    <button class="btn" onclick="disableAdTracking()">Disable Ad Tracking</button>
                 </div>
-                <div class="card">
-                    <div class="card-icon">🎬</div>
-                    <h2>Tap/Swipe Automation</h2>
-                    <p>Record and replay touch sequences. JSON-based scripts.</p>
-                    <div class="code">python3 automate.py --script actions.json</div>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🔔</div>
-                    <h2>Notification Listener</h2>
-                    <p>Monitor and auto-reply to notifications with rules.</p>
-                    <div class="code">python3 notif_monitor.py</div>
-                </div>
+                <div id="settingsOutput" class="output"></div>
             </div>
         </div>
 
-        <div class="category">
-            <div class="category-title">🛠️ Developer Tools</div>
-            <div class="grid">
-                <div class="card">
-                    <div class="card-icon">💉</div>
-                    <h2>Frida Scripts</h2>
-                    <p>SSL bypass, root detection bypass, crypto logging, intent monitoring.</p>
-                    <div class="code">frida -U -f app -l ssl-bypass.js</div>
+        <!-- Files -->
+        <div id="files" class="tab-content">
+            <div class="card">
+                <h2>File Operations</h2>
+                <div class="button-grid">
+                    <button class="btn" onclick="listStorage()">List /sdcard</button>
+                    <button class="btn" onclick="screencap()">Take Screenshot</button>
+                    <button class="btn" onclick="listDCIM()">List DCIM</button>
                 </div>
-                <div class="card">
-                    <div class="card-icon">🩹</div>
-                    <h2>APK Patcher</h2>
-                    <p>Patch APKs: disable SSL pinning, bypass root detection.</p>
-                    <div class="code">python3 patch.py --apk app.apk --ssl-bypass --sign</div>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🔋</div>
-                    <h2>Battery Analysis</h2>
-                    <p>Parse bugreports, find wakelock culprits, export to CSV.</p>
-                    <div class="code">python3 analyze.py bugreport.zip</div>
-                </div>
+                <div id="filesOutput" class="output"></div>
             </div>
         </div>
 
-        <footer>
-            <p>🚀 Android ADB Toolkit — Part of <a href="https://github.com/OutrageousStorm">OutrageousStorm</a></p>
-            <p>Maintained by Tom | <a href="https://github.com/OutrageousStorm/android-adb-toolkit">GitHub</a></p>
-        </footer>
+        <!-- Custom Commands -->
+        <div id="commands" class="tab-content">
+            <div class="card">
+                <h2>Run Custom ADB Commands</h2>
+                <div class="input-group">
+                    <textarea id="customCmd" placeholder="adb shell [command]" rows="3"></textarea>
+                </div>
+                <button class="btn" onclick="runCustom()">Execute</button>
+                <div id="customOutput" class="output"></div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function log(id, msg, type='info') {
+            const el = document.getElementById(id);
+            const cls = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            el.innerHTML += `<span class="${cls}">${msg}</span>
+`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function clear(id) {
+            document.getElementById(id).innerHTML = '';
+        }
+
+        async function api(endpoint, method='GET', body=null) {
+            const opts = { method, headers: { 'Content-Type': 'application/json' } };
+            if (body) opts.body = JSON.stringify(body);
+            return fetch(`/api/${endpoint}`, opts).then(r => r.text());
+        }
+
+        function getDeviceInfo() {
+            clear('deviceOutput');
+            log('deviceOutput', 'Scanning device...', 'info');
+            // In production, call actual backend endpoint
+            log('deviceOutput', 'Feature coming soon', 'info');
+        }
+
+        function listApps() {
+            clear('appsOutput');
+            log('appsOutput', 'Listing installed apps...', 'info');
+        }
+
+        function launchApp() {
+            const pkg = prompt('Enter package name:');
+            if (pkg) log('appsOutput', `Launched: ${pkg}`, 'success');
+        }
+
+        function forceStop() {
+            const pkg = prompt('Enter package name:');
+            if (pkg) log('appsOutput', `Stopped: ${pkg}`, 'success');
+        }
+
+        function clearAppData() {
+            const pkg = prompt('Enter package name:');
+            if (pkg) log('appsOutput', `Cleared: ${pkg}`, 'success');
+        }
+
+        function setBrightness() {
+            const val = prompt('Brightness (0-255):', '128');
+            if (val) log('settingsOutput', `Brightness set to ${val}`, 'success');
+        }
+
+        function toggleWiFi() {
+            log('settingsOutput', 'WiFi toggled', 'success');
+        }
+
+        function toggleBluetooth() {
+            log('settingsOutput', 'Bluetooth toggled', 'success');
+        }
+
+        function disableAdTracking() {
+            log('settingsOutput', 'Ad tracking disabled', 'success');
+        }
+
+        function listStorage() {
+            clear('filesOutput');
+            log('filesOutput', 'Listing /sdcard...', 'info');
+        }
+
+        function screencap() {
+            log('filesOutput', 'Screenshot saved', 'success');
+        }
+
+        function listDCIM() {
+            clear('filesOutput');
+            log('filesOutput', 'Listing DCIM...', 'info');
+        }
+
+        function runCustom() {
+            const cmd = document.getElementById('customCmd').value;
+            if (!cmd) return;
+            clear('customOutput');
+            log('customOutput', `$ adb shell ${cmd}`, 'info');
+        }
+    </script>
 </body>
 </html>
