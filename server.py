@@ -1,50 +1,50 @@
 #!/usr/bin/env python3
 """
-Lightweight ADB server wrapper — start/stop adb server with status
-Usage: python3 server.py start|stop|status|restart
+server.py -- Lightweight Flask server for the web-ui.html dashboard
+Usage: python3 server.py
+Then open: http://localhost:5000
+Requires: pip install flask
 """
-import subprocess, sys, time
+from flask import Flask, jsonify, request
+import subprocess, json
 
-def run(cmd):
-    r = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    return r.returncode == 0, r.stdout.strip()
+app = Flask(__name__)
 
-def get_status():
-    ok, out = run("adb devices")
-    if not ok:
-        return "ERROR"
-    lines = out.split('\n')[1:]
-    devices = [l for l in lines if l.strip() and 'device' in l and 'offline' not in l]
-    return f"RUNNING ({len(devices)} device{'s' if len(devices) != 1 else ''})"
+def run_adb(cmd):
+    try:
+        result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=10)
+        return result.stdout.strip() or result.stderr.strip()
+    except subprocess.TimeoutExpired:
+        return "Command timed out"
+    except Exception as e:
+        return str(e)
 
-def main():
-    if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} start|stop|status|restart")
-        sys.exit(1)
+@app.route('/')
+def index():
+    with open('web-ui.html') as f:
+        return f.read()
 
-    cmd = sys.argv[1].lower()
+@app.route('/api/adb', methods=['POST'])
+def adb_command():
+    data = request.json
+    cmd = data.get('cmd', '').strip()
+    if not cmd:
+        return jsonify({'success': False, 'error': 'No command'})
+    
+    # Whitelist for safety
+    allowed = ['adb', 'getprop', 'settings', 'dumpsys', 'pm', 'input', 'shell', 'wm']
+    if not any(a in cmd for a in allowed):
+        return jsonify({'success': False, 'error': 'Command not allowed'})
+    
+    result = run_adb(cmd)
+    return jsonify({
+        'success': len(result) > 0,
+        'result': result,
+        'cmd': cmd
+    })
 
-    if cmd == "start":
-        print("Starting ADB server...")
-        ok, _ = run("adb start-server")
-        print("✓ Started" if ok else "✗ Failed")
-    elif cmd == "stop":
-        print("Stopping ADB server...")
-        ok, _ = run("adb kill-server")
-        print("✓ Stopped" if ok else "✗ Failed")
-    elif cmd == "status":
-        status = get_status()
-        print(f"ADB: {status}")
-    elif cmd == "restart":
-        print("Restarting ADB...")
-        run("adb kill-server")
-        time.sleep(1)
-        ok, _ = run("adb start-server")
-        time.sleep(1)
-        status = get_status()
-        print(f"✓ Restarted. Status: {status}")
-    else:
-        print(f"Unknown command: {cmd}")
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    print("\n🖥️  ADB Toolkit Server")
+    print("Open: http://localhost:5000")
+    print("Press Ctrl+C to stop\n")
+    app.run(debug=False, host='127.0.0.1', port=5000)
