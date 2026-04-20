@@ -3,62 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 Android ADB Toolkit</title>
+    <title>Android ADB Toolkit</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; 
-               max-width: 900px; margin: 0 auto; padding: 20px; background: #0f0f0f; color: #eee; }
-        h1 { color: #00d4ff; }
-        .section { background: #1a1a1a; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #00d4ff; }
-        .cmd { background: #222; padding: 12px; border-radius: 4px; font-family: monospace; overflow-x: auto; margin: 10px 0; }
-        button { background: #00d4ff; color: #000; border: 0; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #00f0ff; }
-        table { width: 100%; border-collapse: collapse; }
-        td, th { text-align: left; padding: 10px; border-bottom: 1px solid #333; }
-        .star { color: #ffd700; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0e27; color: #e0e0e0; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { color: #4CAF50; margin: 20px 0; font-size: 2.5em; }
+        h2 { color: #66BB6A; margin: 20px 0 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
+        .card { background: #1a1f3a; border-left: 4px solid #4CAF50; padding: 20px; border-radius: 8px; }
+        .card h3 { color: #66BB6A; margin-bottom: 10px; }
+        .card code { background: #0a0e27; padding: 2px 6px; border-radius: 3px; }
+        .command { background: #0a0e27; padding: 15px; margin: 10px 0; border-radius: 5px; overflow-x: auto; }
+        .command code { color: #81C784; }
+        button { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 1em; }
+        button:hover { background: #45a049; }
     </style>
 </head>
 <body>
-    <h1>🤖 Android ADB Toolkit</h1>
-    <p><strong>Connect your Android device via USB and run powerful ADB commands from the web.</strong></p>
+    <div class="container">
+        <h1>🤖 Android ADB Toolkit</h1>
+        <p>Web-based Android debugging and control via ADB.</p>
 
-    <div class="section">
-        <h2>Quick Start</h2>
-        <p>1. Enable USB Debugging on your Android device</p>
-        <p>2. Connect via USB: <code class="cmd">adb devices</code></p>
-        <p>3. Start the toolkit server</p>
-    </div>
+        <h2>Quick Commands</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>Device Info</h3>
+                <div class="command"><code>adb shell getprop ro.product.model</code></div>
+                <button onclick="copyToClipboard('adb shell getprop ro.product.model')">Copy</button>
+            </div>
+            <div class="card">
+                <h3>Install APK</h3>
+                <div class="command"><code>adb install app.apk</code></div>
+                <button onclick="copyToClipboard('adb install app.apk')">Copy</button>
+            </div>
+            <div class="card">
+                <h3>Screen Capture</h3>
+                <div class="command"><code>adb exec-out screencap -p > screen.png</code></div>
+                <button onclick="copyToClipboard('adb exec-out screencap -p > screen.png')">Copy</button>
+            </div>
+            <div class="card">
+                <h3>Reboot to Recovery</h3>
+                <div class="command"><code>adb reboot recovery</code></div>
+                <button onclick="copyToClipboard('adb reboot recovery')">Copy</button>
+            </div>
+            <div class="card">
+                <h3>List Packages</h3>
+                <div class="command"><code>adb shell pm list packages</code></div>
+                <button onclick="copyToClipboard('adb shell pm list packages')">Copy</button>
+            </div>
+            <div class="card">
+                <h3>Grant Permission</h3>
+                <div class="command"><code>adb shell pm grant com.app permission.NAME</code></div>
+                <button onclick="copyToClipboard('adb shell pm grant com.app permission.NAME')">Copy</button>
+            </div>
+        </div>
 
-    <div class="section">
-        <h2><span class="star">⭐</span> Popular Commands</h2>
-        <table>
-            <tr><th>Task</th><th>Command</th></tr>
-            <tr><td>Device Info</td><td><code>adb shell getprop ro.product.model</code></td></tr>
-            <tr><td>List Apps</td><td><code>adb shell pm list packages</code></td></tr>
-            <tr><td>Screenshot</td><td><code>adb exec-out screencap -p > screen.png</code></td></tr>
-            <tr><td>Debloat</td><td><code>adb shell pm uninstall -k --user 0 com.pkg</code></td></tr>
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>Features</h2>
-        <ul>
-            <li>✅ Device discovery</li>
-            <li>✅ File push/pull</li>
-            <li>✅ Screen capture & record</li>
-            <li>✅ App install/uninstall</li>
-            <li>✅ Permission auditing</li>
-            <li>✅ Real-time logcat</li>
+        <h2>Resources</h2>
+        <ul style="margin-left: 20px; margin-top: 10px;">
+            <li><a href="https://github.com/OutrageousStorm/android-adb-cheatsheet" style="color: #4CAF50;">ADB Cheatsheet (150+ commands)</a></li>
+            <li><a href="https://github.com/OutrageousStorm/android-toolkit-scripts" style="color: #4CAF50;">Toolkit Scripts (Python + Bash)</a></li>
+            <li><a href="https://github.com/OutrageousStorm/android-rom-guide" style="color: #4CAF50;">Custom ROM Guide</a></li>
         </ul>
     </div>
-
-    <div class="section">
-        <h2>Documentation</h2>
-        <p>→ <a href="https://github.com/OutrageousStorm/android-adb-toolkit">GitHub Repository</a></p>
-        <p>→ <a href="https://github.com/OutrageousStorm/android-adb-cheatsheet">150+ ADB Commands Cheatsheet</a></p>
-    </div>
-
-    <footer style="margin-top: 40px; text-align: center; color: #666;">
-        <p>OutrageousStorm © 2026</p>
-    </footer>
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert('Copied: ' + text);
+        }
+    </script>
 </body>
 </html>
