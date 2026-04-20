@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>🤖 Android ADB Toolkit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.1em; opacity: 0.9; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        .card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        .card p {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95em;
+            transition: background 0.3s ease;
+            width: 100%;
+        }
+        button:hover { background: #764ba2; }
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        .output {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-top: 10px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.85em;
+            max-height: 150px;
+            overflow-y: auto;
+            border-radius: 4px;
+            color: #333;
+        }
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🤖 Android ADB Toolkit</h1>
+        <p>Control your Android device from the web</p>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>📱 Device Info</h3>
+            <p>Get full device details — model, Android version, CPU, RAM, storage</p>
+            <button onclick="runCommand('adb shell getprop ro.product.model')">Get Model</button>
+            <button onclick="runCommand('adb shell getprop ro.build.version.release')">Get Android Version</button>
+            <div class="output" id="device-output"></div>
+        </div>
+
+        <div class="card">
+            <h3>📦 App Management</h3>
+            <p>List, install, uninstall apps</p>
+            <input type="text" id="pkg-input" placeholder="Package name (e.g., com.example.app)">
+            <button onclick="runCommand('adb shell pm list packages')">List All Packages</button>
+            <button onclick="uninstallApp()">Uninstall Selected</button>
+            <div class="output" id="app-output"></div>
+        </div>
+
+        <div class="card">
+            <h3>🔐 Permissions</h3>
+            <p>Grant or revoke app permissions</p>
+            <input type="text" id="perm-pkg" placeholder="Package name">
+            <input type="text" id="perm-name" placeholder="Permission (e.g., CAMERA)">
+            <button onclick="grantPermission()">Grant Permission</button>
+            <button onclick="revokePermission()">Revoke Permission</button>
+            <div class="output" id="perm-output"></div>
+        </div>
+
+        <div class="card">
+            <h3>⚙️ Settings</h3>
+            <p>Modify system settings</p>
+            <select id="setting-ns">
+                <option value="global">global</option>
+                <option value="secure">secure</option>
+                <option value="system">system</option>
+            </select>
+            <input type="text" id="setting-key" placeholder="Setting key">
+            <input type="text" id="setting-val" placeholder="Value">
+            <button onclick="setSetting()">Set Value</button>
+            <div class="output" id="setting-output"></div>
+        </div>
+
+        <div class="card">
+            <h3>🖼️ Screenshot</h3>
+            <p>Capture screen and download</p>
+            <button onclick="takeScreenshot()">Take Screenshot</button>
+            <div class="output" id="screenshot-output"></div>
+        </div>
+
+        <div class="card">
+            <h3>📱 Screen Control</h3>
+            <p>Tap, swipe, type text</p>
+            <input type="number" id="tap-x" placeholder="X coordinate" style="width: 48%; display: inline-block; margin-right: 2%;">
+            <input type="number" id="tap-y" placeholder="Y coordinate" style="width: 48%; display: inline-block;">
+            <button onclick="tapScreen()">Tap</button>
+            <input type="text" id="text-input" placeholder="Text to type">
+            <button onclick="typeText()">Type</button>
+            <div class="output" id="control-output"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>📖 Requires: <code>adb</code> in PATH, device connected with USB Debugging enabled</p>
+        <p>🔒 All commands run locally — no data sent to remote servers</p>
+    </div>
+</div>
+
+<script>
+function runCommand(cmd) {
+    console.log("Running:", cmd);
+    fetch('/api/adb', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({cmd: cmd})
+    })
+    .then(r => r.json())
+    .then(d => {
+        document.getElementById('device-output').textContent = d.output || d.error;
+    })
+    .catch(e => console.error(e));
+}
+
+function uninstallApp() {
+    const pkg = document.getElementById('pkg-input').value;
+    runCommand(`adb shell pm uninstall -k --user 0 ${pkg}`);
+}
+
+function grantPermission() {
+    const pkg = document.getElementById('perm-pkg').value;
+    const perm = document.getElementById('perm-name').value;
+    runCommand(`adb shell pm grant ${pkg} android.permission.${perm}`);
+}
+
+function revokePermission() {
+    const pkg = document.getElementById('perm-pkg').value;
+    const perm = document.getElementById('perm-name').value;
+    runCommand(`adb shell pm revoke ${pkg} android.permission.${perm}`);
+}
+
+function setSetting() {
+    const ns = document.getElementById('setting-ns').value;
+    const key = document.getElementById('setting-key').value;
+    const val = document.getElementById('setting-val').value;
+    runCommand(`adb shell settings put ${ns} ${key} ${val}`);
+}
+
+function takeScreenshot() {
+    runCommand('adb exec-out screencap -p > screenshot.png');
+}
+
+function tapScreen() {
+    const x = document.getElementById('tap-x').value;
+    const y = document.getElementById('tap-y').value;
+    runCommand(`adb shell input tap ${x} ${y}`);
+}
+
+function typeText() {
+    const txt = document.getElementById('text-input').value;
+    runCommand(`adb shell input text "${txt}"`);
+}
+</script>
+</body>
+</html>
