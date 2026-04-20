@@ -3,285 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android ADB Toolkit</title>
+    <title>🤖 Android ADB Toolkit</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
-            color: #eee;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 {
-            text-align: center;
-            margin: 30px 0;
-            font-size: 2.5em;
-            background: linear-gradient(45deg, #00d4ff, #7c3aed);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .tab-btn {
-            padding: 12px 24px;
-            border: 2px solid #7c3aed;
-            background: transparent;
-            color: #7c3aed;
-            cursor: pointer;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .tab-btn:hover {
-            background: #7c3aed;
-            color: white;
-        }
-        .tab-btn.active {
-            background: #7c3aed;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.3s;
-        }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-        }
-        .card h2 { margin-bottom: 15px; color: #00d4ff; }
-        
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-        .btn {
-            padding: 15px;
-            background: linear-gradient(135deg, #7c3aed, #00d4ff);
-            border: none;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-        .btn:hover { transform: translateY(-2px); }
-        .btn:active { transform: translateY(0); }
-        
-        .input-group {
-            margin-bottom: 15px;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #eee;
-            border-radius: 6px;
-            font-family: monospace;
-        }
-        input::placeholder, textarea::placeholder {
-            color: #888;
-        }
-        .output {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 10px;
-            max-height: 400px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 12px;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-        .success { color: #4ade80; }
-        .error { color: #f87171; }
-        .info { color: #60a5fa; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; 
+               max-width: 900px; margin: 0 auto; padding: 20px; background: #0f0f0f; color: #eee; }
+        h1 { color: #00d4ff; }
+        .section { background: #1a1a1a; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #00d4ff; }
+        .cmd { background: #222; padding: 12px; border-radius: 4px; font-family: monospace; overflow-x: auto; margin: 10px 0; }
+        button { background: #00d4ff; color: #000; border: 0; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #00f0ff; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { text-align: left; padding: 10px; border-bottom: 1px solid #333; }
+        .star { color: #ffd700; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🤖 Android ADB Toolkit</h1>
-        
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('device')">Device Info</button>
-            <button class="tab-btn" onclick="switchTab('apps')">App Manager</button>
-            <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
-            <button class="tab-btn" onclick="switchTab('files')">Files</button>
-            <button class="tab-btn" onclick="switchTab('commands')">Custom Commands</button>
-        </div>
+    <h1>🤖 Android ADB Toolkit</h1>
+    <p><strong>Connect your Android device via USB and run powerful ADB commands from the web.</strong></p>
 
-        <!-- Device Info -->
-        <div id="device" class="tab-content active">
-            <div class="card">
-                <h2>Device Information</h2>
-                <button class="btn" onclick="getDeviceInfo()">Scan Device</button>
-                <div id="deviceOutput" class="output"></div>
-            </div>
-        </div>
-
-        <!-- App Manager -->
-        <div id="apps" class="tab-content">
-            <div class="card">
-                <h2>Manage Applications</h2>
-                <div class="input-group">
-                    <input type="text" id="appSearch" placeholder="Search package name...">
-                </div>
-                <div class="button-grid">
-                    <button class="btn" onclick="listApps()">List Installed Apps</button>
-                    <button class="btn" onclick="launchApp()">Launch App</button>
-                    <button class="btn" onclick="forceStop()">Force Stop</button>
-                    <button class="btn" onclick="clearAppData()">Clear Data</button>
-                </div>
-                <div id="appsOutput" class="output"></div>
-            </div>
-        </div>
-
-        <!-- Settings -->
-        <div id="settings" class="tab-content">
-            <div class="card">
-                <h2>Device Settings</h2>
-                <div class="button-grid">
-                    <button class="btn" onclick="setBrightness()">Set Brightness</button>
-                    <button class="btn" onclick="toggleWiFi()">Toggle WiFi</button>
-                    <button class="btn" onclick="toggleBluetooth()">Toggle Bluetooth</button>
-                    <button class="btn" onclick="disableAdTracking()">Disable Ad Tracking</button>
-                </div>
-                <div id="settingsOutput" class="output"></div>
-            </div>
-        </div>
-
-        <!-- Files -->
-        <div id="files" class="tab-content">
-            <div class="card">
-                <h2>File Operations</h2>
-                <div class="button-grid">
-                    <button class="btn" onclick="listStorage()">List /sdcard</button>
-                    <button class="btn" onclick="screencap()">Take Screenshot</button>
-                    <button class="btn" onclick="listDCIM()">List DCIM</button>
-                </div>
-                <div id="filesOutput" class="output"></div>
-            </div>
-        </div>
-
-        <!-- Custom Commands -->
-        <div id="commands" class="tab-content">
-            <div class="card">
-                <h2>Run Custom ADB Commands</h2>
-                <div class="input-group">
-                    <textarea id="customCmd" placeholder="adb shell [command]" rows="3"></textarea>
-                </div>
-                <button class="btn" onclick="runCustom()">Execute</button>
-                <div id="customOutput" class="output"></div>
-            </div>
-        </div>
+    <div class="section">
+        <h2>Quick Start</h2>
+        <p>1. Enable USB Debugging on your Android device</p>
+        <p>2. Connect via USB: <code class="cmd">adb devices</code></p>
+        <p>3. Start the toolkit server</p>
     </div>
 
-    <script>
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
-        }
+    <div class="section">
+        <h2><span class="star">⭐</span> Popular Commands</h2>
+        <table>
+            <tr><th>Task</th><th>Command</th></tr>
+            <tr><td>Device Info</td><td><code>adb shell getprop ro.product.model</code></td></tr>
+            <tr><td>List Apps</td><td><code>adb shell pm list packages</code></td></tr>
+            <tr><td>Screenshot</td><td><code>adb exec-out screencap -p > screen.png</code></td></tr>
+            <tr><td>Debloat</td><td><code>adb shell pm uninstall -k --user 0 com.pkg</code></td></tr>
+        </table>
+    </div>
 
-        function log(id, msg, type='info') {
-            const el = document.getElementById(id);
-            const cls = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
-            el.innerHTML += `<span class="${cls}">${msg}</span>
-`;
-            el.scrollTop = el.scrollHeight;
-        }
+    <div class="section">
+        <h2>Features</h2>
+        <ul>
+            <li>✅ Device discovery</li>
+            <li>✅ File push/pull</li>
+            <li>✅ Screen capture & record</li>
+            <li>✅ App install/uninstall</li>
+            <li>✅ Permission auditing</li>
+            <li>✅ Real-time logcat</li>
+        </ul>
+    </div>
 
-        function clear(id) {
-            document.getElementById(id).innerHTML = '';
-        }
+    <div class="section">
+        <h2>Documentation</h2>
+        <p>→ <a href="https://github.com/OutrageousStorm/android-adb-toolkit">GitHub Repository</a></p>
+        <p>→ <a href="https://github.com/OutrageousStorm/android-adb-cheatsheet">150+ ADB Commands Cheatsheet</a></p>
+    </div>
 
-        async function api(endpoint, method='GET', body=null) {
-            const opts = { method, headers: { 'Content-Type': 'application/json' } };
-            if (body) opts.body = JSON.stringify(body);
-            return fetch(`/api/${endpoint}`, opts).then(r => r.text());
-        }
-
-        function getDeviceInfo() {
-            clear('deviceOutput');
-            log('deviceOutput', 'Scanning device...', 'info');
-            // In production, call actual backend endpoint
-            log('deviceOutput', 'Feature coming soon', 'info');
-        }
-
-        function listApps() {
-            clear('appsOutput');
-            log('appsOutput', 'Listing installed apps...', 'info');
-        }
-
-        function launchApp() {
-            const pkg = prompt('Enter package name:');
-            if (pkg) log('appsOutput', `Launched: ${pkg}`, 'success');
-        }
-
-        function forceStop() {
-            const pkg = prompt('Enter package name:');
-            if (pkg) log('appsOutput', `Stopped: ${pkg}`, 'success');
-        }
-
-        function clearAppData() {
-            const pkg = prompt('Enter package name:');
-            if (pkg) log('appsOutput', `Cleared: ${pkg}`, 'success');
-        }
-
-        function setBrightness() {
-            const val = prompt('Brightness (0-255):', '128');
-            if (val) log('settingsOutput', `Brightness set to ${val}`, 'success');
-        }
-
-        function toggleWiFi() {
-            log('settingsOutput', 'WiFi toggled', 'success');
-        }
-
-        function toggleBluetooth() {
-            log('settingsOutput', 'Bluetooth toggled', 'success');
-        }
-
-        function disableAdTracking() {
-            log('settingsOutput', 'Ad tracking disabled', 'success');
-        }
-
-        function listStorage() {
-            clear('filesOutput');
-            log('filesOutput', 'Listing /sdcard...', 'info');
-        }
-
-        function screencap() {
-            log('filesOutput', 'Screenshot saved', 'success');
-        }
-
-        function listDCIM() {
-            clear('filesOutput');
-            log('filesOutput', 'Listing DCIM...', 'info');
-        }
-
-        function runCustom() {
-            const cmd = document.getElementById('customCmd').value;
-            if (!cmd) return;
-            clear('customOutput');
-            log('customOutput', `$ adb shell ${cmd}`, 'info');
-        }
-    </script>
+    <footer style="margin-top: 40px; text-align: center; color: #666;">
+        <p>OutrageousStorm © 2026</p>
+    </footer>
 </body>
 </html>
