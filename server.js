@@ -1,78 +1,79 @@
-const express = require('express');
-const { exec } = require('child_process');
+#!/usr/bin/env node
+/**
+ * server.js -- Express.js web server for ADB control
+ * npm install express cors
+ * node server.js
+ * Open http://localhost:3000
+ */
+
+const express = require("express");
+const { exec } = require("child_process");
+const { promisify } = require("util");
+const path = require("path");
+
+const execAsync = promisify(exec);
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname)));
 
-function adb(cmd) {
-  return new Promise((resolve, reject) => {
-    exec(`adb shell ${cmd}`, (err, stdout) => {
-      resolve(stdout.trim());
-    });
-  });
+async function adb(cmd) {
+    try {
+        const { stdout } = await execAsync(`adb shell ${cmd}`);
+        return stdout.trim();
+    } catch (e) {
+        return `Error: ${e.message}`;
+    }
 }
 
-// Device info endpoint
-app.get('/api/device', async (req, res) => {
-  const model = await adb("getprop ro.product.model");
-  const android = await adb("getprop ro.build.version.release");
-  const battery = await adb("dumpsys battery | grep level");
-  res.json({ model, android, battery });
+// API endpoints
+app.post("/api/exec", async (req, res) => {
+    const { command } = req.body;
+    const result = await adb(command);
+    res.json({ command, result });
 });
 
-// Package list endpoint
-app.get('/api/packages', async (req, res) => {
-  const output = await adb("pm list packages -3");
-  const packages = output.split('\n').filter(l => l.startsWith('package:')).map(l => l.substring(8));
-  res.json({ packages, count: packages.length });
+app.get("/api/devices", async (req, res) => {
+    try {
+        const { stdout } = await execAsync("adb devices");
+        const devices = stdout.split("\n").slice(1)
+            .filter(l => l.includes("device"))
+            .map(l => l.split("\t")[0]);
+        res.json({ devices });
+    } catch (e) {
+        res.json({ error: e.message });
+    }
 });
 
-// Screenshot endpoint
-app.get('/api/screenshot', (req, res) => {
-  exec('adb exec-out screencap -p > /tmp/ss.png && cat /tmp/ss.png', (err, stdout) => {
-    res.setHeader('Content-Type', 'image/png');
-    res.send(stdout);
-  });
+app.get("/api/info", async (req, res) => {
+    const model = await adb("getprop ro.product.model");
+    const android = await adb("getprop ro.build.version.release");
+    const storage = await adb("df -h /data | tail -1 | awk '{print $2, $3}'");
+    res.json({ model, android, storage });
 });
 
-// Tap command
-app.post('/api/tap', async (req, res) => {
-  const { x, y } = req.body;
-  await adb(`input tap ${x} ${y}`);
-  res.json({ ok: true });
+app.post("/api/install", async (req, res) => {
+    const { apkPath } = req.body;
+    const result = await adb(`pm install -r "${apkPath}"`);
+    res.json({ status: result.includes("Success") ? "ok" : "failed", result });
 });
 
-// Swipe command
-app.post('/api/swipe', async (req, res) => {
-  const { x1, y1, x2, y2 } = req.body;
-  await adb(`input swipe ${x1} ${y1} ${x2} ${y2} 300`);
-  res.json({ ok: true });
+app.post("/api/uninstall", async (req, res) => {
+    const { pkg } = req.body;
+    const result = await adb(`pm uninstall -k --user 0 ${pkg}`);
+    res.json({ status: result.includes("Success") ? "ok" : "failed", result });
 });
 
-// Install APK
-app.post('/api/install', async (req, res) => {
-  const { url } = req.body;
-  exec(`adb install "${url}"`, (err, stdout) => {
-    res.json({ result: stdout, error: err });
-  });
-});
-
-// List running apps
-app.get('/api/running', async (req, res) => {
-  const output = await adb("cmd activity get-top-activity");
-  res.json({ output });
+app.get("/api/packages", async (req, res) => {
+    const result = await adb("pm list packages -3");
+    const packages = result.split("\n")
+        .map(l => l.replace("package:", ""))
+        .filter(l => l);
+    res.json({ count: packages.length, packages: packages.slice(0, 50) });
 });
 
 app.listen(PORT, () => {
-  console.log(`ADB Server running on http://localhost:${PORT}`);
-  console.log('API endpoints:');
-  console.log('  GET  /api/device        - Device info');
-  console.log('  GET  /api/packages      - Installed packages');
-  console.log('  GET  /api/screenshot    - Screenshot');
-  console.log('  GET  /api/running       - Top activity');
-  console.log('  POST /api/tap           - Tap at coordinates');
-  console.log('  POST /api/swipe         - Swipe');
-  console.log('  POST /api/install       - Install APK from URL');
+    console.log(`🖥️  ADB Web Server running at http://localhost:${PORT}`);
+    console.log("   Endpoints: /api/exec, /api/devices, /api/info, /api/packages, /api/install, /api/uninstall");
 });
