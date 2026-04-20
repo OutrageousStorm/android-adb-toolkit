@@ -1,78 +1,110 @@
 #!/usr/bin/env node
 /**
- * ADB Quick CLI — command-line tool for common ADB tasks
- * Usage: node cli.js [command] [options]
- * Commands: info, apps, perms, debloat, screenshot, record, wifi
+ * cli.js — Android ADB CLI tool (Node.js)
+ * Usage: node cli.js device-info
+ *        node cli.js permissions --app com.example.app
+ *        node cli.js debloat --list lists/samsung.txt
  */
 
-const { exec } = require("child_process");
+const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
 function adb(cmd) {
-    return new Promise((res, rej) => {
-        exec(`adb shell ${cmd}`, (err, stdout) => {
-            if (err) rej(err);
-            else res(stdout.trim());
-        });
-    });
+  try {
+    return execSync(`adb shell ${cmd}`, { encoding: "utf8" }).trim();
+  } catch (e) {
+    return "";
+  }
 }
 
 const commands = {
-    async info() {
-        console.log("📱 Device Info");
-        console.log("─".repeat(40));
-        const model = await adb("getprop ro.product.model");
-        const android = await adb("getprop ro.build.version.release");
-        const api = await adb("getprop ro.build.version.sdk");
-        const battery = await adb("dumpsys battery | grep level");
-        console.log(`Model:    ${model}`);
-        console.log(`Android:  ${android} (API ${api})`);
-        console.log(`Battery:  ${battery}`);
-    },
+  "device-info": () => {
+    console.log("\n📱 Device Info");
+    console.log("=".repeat(40));
+    console.log(`Model:        ${adb("getprop ro.product.model")}`);
+    console.log(`Android:      ${adb("getprop ro.build.version.release")}`);
+    console.log(`API Level:    ${adb("getprop ro.build.version.sdk")}`);
+    console.log(`Build:        ${adb("getprop ro.build.fingerprint")}`);
+    console.log(`CPU:          ${adb("getprop ro.product.cpu.abi")}`);
+    console.log(`RAM:          ${adb("cat /proc/meminfo | grep MemTotal")}`);
+    console.log(`Storage:      ${adb("df -h /data | tail -1")}`);
+    console.log(`Bootloader:   ${adb("getprop ro.boot.verifiedbootstate")}`);
+    console.log();
+  },
 
-    async apps() {
-        console.log("📦 User-Installed Apps");
-        const out = await adb("pm list packages -3");
-        const apps = out.split("\n").filter(l => l.startsWith("package:"));
-        console.log(`Found: ${apps.length}\n`);
-        apps.forEach(a => console.log(`  ${a.split(":")[1]}`));
-    },
-
-    async screenshot() {
-        const file = `screenshot_${Date.now()}.png`;
-        exec(`adb exec-out screencap -p > ${file}`, (err) => {
-            if (!err) console.log(`✅ Screenshot: ${file}`);
-            else console.error("❌ Failed");
-        });
-    },
-
-    async wifi() {
-        console.log("📡 WiFi QR Code — scan to connect");
-        // Requires qrencode or similar
-        const ssid = await adb("dumpsys wifi | grep SSID");
-        console.log(ssid);
-    },
-
-    async help() {
-        console.log(`
-ADB Quick CLI
-Usage: node cli.js [command]
-
-Commands:
-  info        Show device info (model, Android, battery)
-  apps        List installed user apps
-  screenshot  Take a screenshot
-  wifi        Show WiFi info
-  help        This message
-        `);
+  "permissions": (args) => {
+    const pkg = args["--app"];
+    if (!pkg) {
+      console.log("Usage: cli.js permissions --app com.example.app");
+      return;
     }
+    const perms = adb(`dumpsys package ${pkg} | grep granted=true`);
+    console.log(`\n🔐 Permissions for ${pkg}:\n`);
+    console.log(perms || "  (none granted)");
+    console.log();
+  },
+
+  "debloat": (args) => {
+    const list = args["--list"];
+    if (!list || !fs.existsSync(list)) {
+      console.log(`Usage: cli.js debloat --list <file.txt>`);
+      return;
+    }
+    const pkgs = fs.readFileSync(list, "utf8").split("\n")
+      .map(l => l.trim())
+      .filter(l => l && !l.startsWith("#"));
+    
+    console.log(`\n🗑️  Debloating ${pkgs.length} packages...\n`);
+    let removed = 0, failed = 0;
+    pkgs.forEach(pkg => {
+      const r = adb(`pm uninstall -k --user 0 ${pkg}`);
+      if (r.includes("Success") || r === "") {
+        console.log(`  ✓ ${pkg}`);
+        removed++;
+      } else {
+        console.log(`  ✗ ${pkg}`);
+        failed++;
+      }
+    });
+    console.log(`\n✅ Removed: ${removed}  ❌ Failed: ${failed}\n`);
+  },
+
+  "backup": () => {
+    const dir = `backup_${new Date().toISOString().slice(0,10)}`;
+    require("child_process").mkdirSync(dir, { recursive: true });
+    console.log(`\n📦 Backing up to ${dir}...`);
+    
+    // Device info
+    fs.writeFileSync(`${dir}/device_info.txt`,
+      `Model: ${adb("getprop ro.product.model")}\n` +
+      `Android: ${adb("getprop ro.build.version.release")}\n` +
+      `Build: ${adb("getprop ro.build.fingerprint")}\n`
+    );
+    console.log(`  ✓ device_info.txt`);
+
+    // Package list
+    const pkgs = adb("pm list packages -3");
+    fs.writeFileSync(`${dir}/packages.txt`, pkgs);
+    console.log(`  ✓ packages.txt (${pkgs.split("\n").length} apps)`);
+
+    console.log(`\n✅ Backup saved to ${dir}/\n`);
+  },
 };
 
-const cmd = process.argv[2] || "help";
-if (commands[cmd]) {
-    commands[cmd]().catch(e => console.error("Error:", e.message));
-} else {
-    console.error(`Unknown command: ${cmd}`);
-    commands.help();
+const args = process.argv.slice(2);
+const cmd = args[0];
+const opts = {};
+for (let i = 1; i < args.length; i += 2) {
+  if (args[i].startsWith("--")) {
+    opts[args[i]] = args[i + 1];
+  }
 }
+
+if (!cmd || !commands[cmd]) {
+  console.log("Available commands:");
+  Object.keys(commands).forEach(c => console.log(`  node cli.js ${c}`));
+  process.exit(1);
+}
+
+commands[cmd](opts);
