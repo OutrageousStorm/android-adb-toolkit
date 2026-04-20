@@ -1,69 +1,131 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>ADB Web UI</title>
-  <style>
-    body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #0f0; }
-    .control { margin: 10px 0; padding: 10px; background: #2d2d2d; border: 1px solid #0f0; }
-    input { padding: 5px; margin: 5px; width: 300px; }
-    button { padding: 8px 15px; background: #0f0; color: black; border: none; cursor: pointer; }
-    button:hover { background: #0a0; }
-    #output { background: black; color: #0f0; padding: 10px; margin-top: 20px; height: 200px; overflow-y: auto; }
-    .success { color: #0f0; }
-    .error { color: #f00; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android ADB Toolkit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; 
+               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+               min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; 
+                    background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    padding: 30px; }
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #999; margin-bottom: 30px; }
+        .section { margin-bottom: 40px; }
+        .section h2 { color: #667eea; font-size: 18px; margin-bottom: 15px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        input, button, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px;
+                               font-size: 14px; }
+        input { width: 100%; }
+        button { background: #667eea; color: white; border: none; cursor: pointer;
+                font-weight: 500; padding: 10px 20px; }
+        button:hover { background: #764ba2; }
+        .output { background: #f5f5f5; border-left: 4px solid #667eea; padding: 15px;
+                 border-radius: 4px; font-family: monospace; font-size: 12px;
+                 max-height: 200px; overflow-y: auto; margin-top: 10px; }
+        .status { padding: 10px; border-radius: 4px; margin-top: 10px; }
+        .status.ok { background: #d4edda; color: #155724; }
+        .status.err { background: #f8d7da; color: #721c24; }
+    </style>
 </head>
 <body>
-  <h1>📱 ADB Web Control</h1>
-  <p>⚠️ Requires adb-server running on localhost:5037</p>
+<div class="container">
+    <h1>📱 Android ADB Toolkit</h1>
+    <p class="subtitle">Requires: adb running locally (must run this on your PC, not in browser)</p>
 
-  <div class="control">
-    <h3>Device Info</h3>
-    <button onclick="runCmd('adb shell getprop ro.product.model')">Model</button>
-    <button onclick="runCmd('adb shell getprop ro.build.version.release')">Android Version</button>
-    <button onclick="runCmd('adb shell settings get global adb_enabled')">Check ADB Status</button>
-  </div>
+    <div class="section">
+        <h2>Device Info</h2>
+        <button onclick="runCmd('adb shell getprop ro.product.model')">Model</button>
+        <button onclick="runCmd('adb shell getprop ro.build.version.release')">Android Version</button>
+        <button onclick="runCmd('adb shell wm size')">Screen Size</button>
+        <button onclick="runCmd('adb shell dumpsys battery | grep level')">Battery</button>
+        <div class="output" id="output-info"></div>
+    </div>
 
-  <div class="control">
-    <h3>App Control</h3>
-    <input id="pkgInput" placeholder="Package name" value="com.example.app">
-    <button onclick="runCmd('adb shell pm list packages | grep ' + document.getElementById('pkgInput').value)">Search Apps</button>
-    <button onclick="runCmd('adb shell am force-stop ' + document.getElementById('pkgInput').value)">Force Stop</button>
-    <button onclick="runCmd('adb shell pm clear ' + document.getElementById('pkgInput').value)">Clear Data</button>
-  </div>
+    <div class="section">
+        <h2>App Control</h2>
+        <input type="text" id="pkg-name" placeholder="Package name (e.g. com.example.app)">
+        <div class="grid">
+            <button onclick="appAction('install')">Install APK</button>
+            <button onclick="appAction('uninstall')">Uninstall</button>
+            <button onclick="appAction('launch')">Launch</button>
+            <button onclick="appAction('stop')">Force Stop</button>
+        </div>
+        <div class="output" id="output-app"></div>
+    </div>
 
-  <div class="control">
-    <h3>Shell Command</h3>
-    <input id="cmdInput" placeholder="ADB command (without 'adb shell')" value="dumpsys battery">
-    <button onclick="runCustomCmd()">Run</button>
-  </div>
+    <div class="section">
+        <h2>Settings</h2>
+        <div class="grid">
+            <button onclick="runCmd('adb shell settings put global limit_ad_tracking 1')">Disable Ad Tracking</button>
+            <button onclick="runCmd('adb shell settings put secure location_mode 0')">Disable Location</button>
+            <button onclick="runCmd('adb shell settings put system screen_brightness 200')">Max Brightness</button>
+            <button onclick="runCmd('adb shell settings put system screen_brightness 100')">Dim Brightness</button>
+        </div>
+        <div class="output" id="output-settings"></div>
+    </div>
 
-  <div id="output">Output appears here...</div>
+    <div class="section">
+        <h2>Network & Files</h2>
+        <input type="text" id="file-path" placeholder="/sdcard/file.txt">
+        <div class="grid">
+            <button onclick="runCmd('adb shell ip addr')">Network Info</button>
+            <button onclick="fileAction('pull')">Pull File</button>
+            <button onclick="fileAction('push')">Push File</button>
+        </div>
+        <div class="output" id="output-net"></div>
+    </div>
+</div>
 
-  <script>
-    function runCmd(cmd) {
-      fetch('/api/cmd', {
+<script>
+function runCmd(cmd) {
+    const output = event.target.textContent.match(/^\w+/) ? document.getElementById('output-info') : 
+                   event.target.parentElement.querySelector('.output');
+    output.textContent = 'Running: ' + cmd + '...\n';
+    fetch('/api/adb', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command: cmd })
-      })
-      .then(r => r.json())
-      .then(data => {
-        const out = document.getElementById('output');
-        if (data.success) {
-          out.innerHTML = '<div class="success">✓ Success</div><pre>' + (data.output || '(empty)') + '</pre>';
-        } else {
-          out.innerHTML = '<div class="error">✗ Error: ' + (data.error || 'Unknown') + '</div>';
-        }
-      })
-      .catch(e => {
-        document.getElementById('output').innerHTML = '<div class="error">Connection failed</div>';
+        body: JSON.stringify({ cmd })
+    }).then(r => r.json())
+      .then(d => {
+          output.textContent = d.result || d.error;
+          output.parentElement.appendChild(createStatus(d.success));
+      }).catch(e => {
+          output.textContent = 'Error: ' + e.message;
+          output.parentElement.appendChild(createStatus(false));
       });
-    }
-    function runCustomCmd() {
-      const cmd = 'adb shell ' + document.getElementById('cmdInput').value;
-      runCmd(cmd);
-    }
-  </script>
+}
+
+function appAction(action) {
+    const pkg = document.getElementById('pkg-name').value;
+    if (!pkg) { alert('Enter package name'); return; }
+    const cmds = {
+        install: 'adb install app.apk',
+        uninstall: `adb uninstall ${pkg}`,
+        launch: `adb shell monkey -p ${pkg} -c android.intent.category.LAUNCHER 1`,
+        stop: `adb shell am force-stop ${pkg}`
+    };
+    runCmd(cmds[action]);
+}
+
+function fileAction(action) {
+    const path = document.getElementById('file-path').value;
+    const cmds = {
+        pull: `adb pull ${path} .`,
+        push: `adb push ${path} /sdcard/`
+    };
+    runCmd(cmds[action]);
+}
+
+function createStatus(ok) {
+    const el = document.createElement('div');
+    el.className = 'status ' + (ok ? 'ok' : 'err');
+    el.textContent = ok ? '✓ Success' : '✗ Failed';
+    return el;
+}
+</script>
 </body>
 </html>
