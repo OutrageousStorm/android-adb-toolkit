@@ -1,44 +1,46 @@
-# Features & Roadmap
+# ADB Toolkit Features
 
-## ✅ Implemented
+## Web UI Dashboard (HTML/JS)
+- Real-time device info (CPU, RAM, battery, network)
+- Package manager — install/uninstall/clear
+- File browser — push/pull files
+- Screen control — brightness, display density, orientation
+- Quick toggle buttons — WiFi, Bluetooth, airplane mode, doze
+- App launcher with search
+- Screenshot & screen record preview
 
-### Device Management
-- [x] Device info snapshot (model, Android version, storage)
-- [x] Reboot options (system, recovery, bootloader, fastboot)
-- [x] Wireless ADB setup
-- [x] Device screenshot & video recording
+## ADB Server Requirements
+```bash
+# Linux/Mac: adb daemon runs automatically
+# Windows: adb server included in SDK Platform Tools
 
-### App Management
-- [x] Install/uninstall APKs
-- [x] Permission viewer
-- [x] App data backup/restore
-- [x] App launcher with recent apps list
+# Verify server is running:
+adb start-server
+adb devices  # should show connected device
+```
 
-### System Tweaks
-- [x] Brightness/volume controls
-- [x] WiFi/Bluetooth toggle
-- [x] Developer options toggle
-- [x] USB debugging control
+## Endpoints (via adb forward)
+```
+GET  /device/info
+GET  /packages/list
+POST /packages/install
+POST /packages/uninstall
+GET  /files/list?path=/sdcard
+GET  /settings/get?key=screen_brightness
+POST /settings/put?key=screen_brightness&value=200
+GET  /screenshot
+POST /screen/tap?x=540&y=960
+POST /screen/text?input=hello
+```
 
-### Network
-- [x] Logcat viewer (real-time)
-- [x] Network interface info
-- [x] Port forwarding setup
+## Usage
+```bash
+# Start ADB server
+adb start-server
 
-## 🚀 Planned
+# Forward web UI
+adb forward tcp:8080 tcp:8080
 
-### v2.0
-- [ ] Magisk/KernelSU detection
-- [ ] Battery usage breakdown per app
-- [ ] Network traffic monitor (real-time)
-- [ ] Package extractor with decompile option
-
-### v3.0
-- [ ] Material UI redesign
-- [ ] WebSocket live updates
-- [ ] Multi-device support
-- [ ] Automated task scheduler
-
----
-
-*Last updated: 2026-04-18*
+# Open browser
+http://localhost:8080
+```
