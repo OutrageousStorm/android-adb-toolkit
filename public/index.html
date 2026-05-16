@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Android ADB Toolkit</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    header {
+      background: #333;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 { font-size: 2em; margin-bottom: 5px; }
+    #deviceInfo {
+      background: #f5f5f5;
+      padding: 15px;
+      border-bottom: 1px solid #ddd;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .info-card {
+      background: white;
+      padding: 10px;
+      border-radius: 5px;
+      border-left: 3px solid #667eea;
+    }
+    .info-label {
+      font-size: 0.85em;
+      color: #666;
+      font-weight: 600;
+    }
+    .info-value {
+      font-size: 1.2em;
+      color: #333;
+      margin-top: 5px;
+      font-family: monospace;
+    }
+    .content {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .panel {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+    }
+    .panel h2 {
+      font-size: 1.1em;
+      margin-bottom: 10px;
+      color: #333;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 8px;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.95em;
+      transition: background 0.2s;
+    }
+    button:hover { background: #764ba2; }
+    #packageList {
+      list-style: none;
+      max-height: 300px;
+      overflow-y: auto;
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .package-item {
+      padding: 8px;
+      margin: 5px 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 0.9em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .package-item button {
+      padding: 5px 10px;
+      font-size: 0.85em;
+    }
+    #screenshot {
+      max-width: 100%;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    @media (max-width: 768px) {
+      .content { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🤖 Android ADB Toolkit</h1>
+      <p>Manage and debug your Android device from the web</p>
+    </header>
+
+    <div id="deviceInfo" style="display: none;">
+      <div class="info-card">
+        <div class="info-label">Model</div>
+        <div class="info-value" id="modelValue">—</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Android</div>
+        <div class="info-value" id="androidValue">—</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Battery</div>
+        <div class="info-value" id="batteryValue">—</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="panel">
+        <h2>📦 Packages</h2>
+        <button onclick="loadPackages()">Load Installed Apps</button>
+        <ul id="packageList"></ul>
+      </div>
+
+      <div class="panel">
+        <h2>📸 Screenshot</h2>
+        <button onclick="takeScreenshot()">Capture Screen</button>
+        <img id="screenshot" style="display: none;">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadDevice() {
+      const res = await fetch('/api/device');
+      const data = await res.json();
+      document.getElementById('modelValue').textContent = data.model || 'Unknown';
+      document.getElementById('androidValue').textContent = data.android || 'Unknown';
+      document.getElementById('batteryValue').textContent = data.battery || 'Unknown';
+      document.getElementById('deviceInfo').style.display = 'grid';
+    }
+
+    async function loadPackages() {
+      const res = await fetch('/api/packages', { method: 'POST' });
+      const data = await res.json();
+      const list = document.getElementById('packageList');
+      list.innerHTML = '';
+      data.packages.forEach(pkg => {
+        const li = document.createElement('li');
+        li.className = 'package-item';
+        li.innerHTML = `<span>${pkg}</span><button onclick="revokeLocation('${pkg}')">Revoke Location</button>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function revokeLocation(pkg) {
+      const res = await fetch('/api/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pkg, perm: 'android.permission.ACCESS_FINE_LOCATION' })
+      });
+      const result = await res.json();
+      alert(`Revoked location from ${pkg}: ${result.ok ? 'Success' : result.error}`);
+    }
+
+    async function takeScreenshot() {
+      const res = await fetch('/api/screenshot', { method: 'POST' });
+      const data = await res.json();
+      if (data.image) {
+        const img = document.getElementById('screenshot');
+        img.src = data.image;
+        img.style.display = 'block';
+      } else {
+        alert('Failed to capture: ' + data.error);
+      }
+    }
+
+    loadDevice();
+  </script>
+</body>
+</html>
