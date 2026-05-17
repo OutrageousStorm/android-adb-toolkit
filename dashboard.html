@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ADB Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: monospace; background: #0d1117; color: #c9d1d9; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+        .card { background: #161b22; border: 1px solid #30363d; padding: 15px; margin: 10px 0; border-radius: 6px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .btn { background: #238636; color: #fff; padding: 8px 16px; border: none; cursor: pointer; border-radius: 6px; }
+        .btn:hover { background: #2ea043; }
+        .input { background: #0d1117; color: #c9d1d9; padding: 8px; border: 1px solid #30363d; border-radius: 6px; width: 100%; margin: 5px 0; }
+        .stat { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #30363d; }
+        .stat-label { font-weight: bold; }
+        .stat-value { color: #79c0ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">📱 ADB Dashboard</div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>Device Info</h3>
+                <div class="stat">
+                    <span class="stat-label">Model:</span>
+                    <span class="stat-value" id="model">—</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Android:</span>
+                    <span class="stat-value" id="android">—</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Battery:</span>
+                    <span class="stat-value" id="battery">—</span>
+                </div>
+                <button class="btn" onclick="refreshDevice()">Refresh</button>
+            </div>
+
+            <div class="card">
+                <h3>Quick Actions</h3>
+                <button class="btn" onclick="runCommand('input keyevent 26')">Turn Screen Off</button>
+                <button class="btn" onclick="runCommand('input keyevent 3')">Go Home</button>
+                <button class="btn" onclick="runCommand('input keyevent 4')">Go Back</button>
+                <button class="btn" onclick="runCommand('dumpsys battery reset')">Reset Battery Stats</button>
+            </div>
+
+            <div class="card">
+                <h3>App Manager</h3>
+                <input type="text" class="input" id="appSearch" placeholder="Package name..." />
+                <button class="btn" onclick="listApps()">List Packages</button>
+                <div id="appList" style="margin-top: 10px;"></div>
+            </div>
+
+            <div class="card">
+                <h3>Settings</h3>
+                <input type="text" class="input" id="settingKey" placeholder="setting key" />
+                <input type="text" class="input" id="settingValue" placeholder="value" />
+                <button class="btn" onclick="putSetting()">Set Global</button>
+                <div id="settingResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Mock fetch for local testing; replace with actual ADB bridge
+    async function runAdb(cmd) {
+        console.log("ADB:", cmd);
+        // In production, call your backend ADB bridge here
+        return `Executed: ${cmd}`;
+    }
+
+    async function refreshDevice() {
+        document.getElementById("model").textContent = await runAdb("getprop ro.product.model") || "Unknown";
+        document.getElementById("android").textContent = await runAdb("getprop ro.build.version.release") || "Unknown";
+        document.getElementById("battery").textContent = await runAdb("dumpsys battery | grep level") || "Unknown";
+    }
+
+    async function runCommand(cmd) {
+        alert(await runAdb(cmd));
+    }
+
+    async function listApps() {
+        const search = document.getElementById("appSearch").value;
+        const result = await runAdb(`pm list packages ${search ? "| grep " + search : ""}`);
+        document.getElementById("appList").innerHTML = "<pre>" + result + "</pre>";
+    }
+
+    async function putSetting() {
+        const key = document.getElementById("settingKey").value;
+        const val = document.getElementById("settingValue").value;
+        const result = await runAdb(`settings put global ${key} ${val}`);
+        document.getElementById("settingResult").textContent = result;
+    }
+
+    // Auto-refresh on load
+    refreshDevice();
+    </script>
+</body>
+</html>
