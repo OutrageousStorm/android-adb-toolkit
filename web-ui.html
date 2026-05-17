@@ -3,129 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Android ADB Toolkit</title>
+    <title>ADB Toolkit</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; 
-               background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-               min-height: 100vh; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; 
-                    background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                    padding: 30px; }
-        h1 { color: #333; margin-bottom: 10px; }
-        .subtitle { color: #999; margin-bottom: 30px; }
-        .section { margin-bottom: 40px; }
-        .section h2 { color: #667eea; font-size: 18px; margin-bottom: 15px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-        input, button, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px;
-                               font-size: 14px; }
-        input { width: 100%; }
-        button { background: #667eea; color: white; border: none; cursor: pointer;
-                font-weight: 500; padding: 10px 20px; }
-        button:hover { background: #764ba2; }
-        .output { background: #f5f5f5; border-left: 4px solid #667eea; padding: 15px;
-                 border-radius: 4px; font-family: monospace; font-size: 12px;
-                 max-height: 200px; overflow-y: auto; margin-top: 10px; }
-        .status { padding: 10px; border-radius: 4px; margin-top: 10px; }
-        .status.ok { background: #d4edda; color: #155724; }
-        .status.err { background: #f8d7da; color: #721c24; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { margin-bottom: 30px; }
+        .header h1 { font-size: 32px; margin-bottom: 5px; }
+        .status { display: flex; gap: 20px; margin: 20px 0; }
+        .status-item { background: #161b22; padding: 15px; border-radius: 8px; flex: 1; }
+        .status-item.connected { border-left: 4px solid #3fb950; }
+        .status-item.disconnected { border-left: 4px solid #f85149; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+        .card h2 { font-size: 18px; margin-bottom: 15px; color: #58a6ff; }
+        .input-group { margin-bottom: 12px; display: flex; gap: 10px; }
+        input, button { padding: 10px; border: 1px solid #30363d; border-radius: 6px; background: #0d1117; color: #c9d1d9; }
+        button { background: #238636; border: none; cursor: pointer; font-weight: 600; }
+        button:hover { background: #2ea043; }
+        .output { background: #010409; border: 1px solid #30363d; border-radius: 6px; padding: 15px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; margin-top: 15px; }
+        .output.success { border-left: 4px solid #3fb950; }
+        .output.error { border-left: 4px solid #f85149; }
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .button-group button { flex: 1; min-width: 100px; }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>📱 Android ADB Toolkit</h1>
-    <p class="subtitle">Requires: adb running locally (must run this on your PC, not in browser)</p>
-
-    <div class="section">
-        <h2>Device Info</h2>
-        <button onclick="runCmd('adb shell getprop ro.product.model')">Model</button>
-        <button onclick="runCmd('adb shell getprop ro.build.version.release')">Android Version</button>
-        <button onclick="runCmd('adb shell wm size')">Screen Size</button>
-        <button onclick="runCmd('adb shell dumpsys battery | grep level')">Battery</button>
-        <div class="output" id="output-info"></div>
-    </div>
-
-    <div class="section">
-        <h2>App Control</h2>
-        <input type="text" id="pkg-name" placeholder="Package name (e.g. com.example.app)">
-        <div class="grid">
-            <button onclick="appAction('install')">Install APK</button>
-            <button onclick="appAction('uninstall')">Uninstall</button>
-            <button onclick="appAction('launch')">Launch</button>
-            <button onclick="appAction('stop')">Force Stop</button>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 ADB Toolkit</h1>
+            <p>Web UI for Android device control</p>
         </div>
-        <div class="output" id="output-app"></div>
-    </div>
 
-    <div class="section">
-        <h2>Settings</h2>
-        <div class="grid">
-            <button onclick="runCmd('adb shell settings put global limit_ad_tracking 1')">Disable Ad Tracking</button>
-            <button onclick="runCmd('adb shell settings put secure location_mode 0')">Disable Location</button>
-            <button onclick="runCmd('adb shell settings put system screen_brightness 200')">Max Brightness</button>
-            <button onclick="runCmd('adb shell settings put system screen_brightness 100')">Dim Brightness</button>
+        <div class="status" id="status">
+            <div class="status-item disconnected" id="deviceStatus">
+                <strong>Device:</strong> <span id="deviceInfo">Not connected</span>
+            </div>
+            <div class="status-item" id="androidVersion">
+                <strong>Android:</strong> <span>—</span>
+            </div>
+            <div class="status-item" id="storage">
+                <strong>Storage:</strong> <span>—</span>
+            </div>
         </div>
-        <div class="output" id="output-settings"></div>
-    </div>
 
-    <div class="section">
-        <h2>Network & Files</h2>
-        <input type="text" id="file-path" placeholder="/sdcard/file.txt">
         <div class="grid">
-            <button onclick="runCmd('adb shell ip addr')">Network Info</button>
-            <button onclick="fileAction('pull')">Pull File</button>
-            <button onclick="fileAction('push')">Push File</button>
+            <!-- Device Info -->
+            <div class="card">
+                <h2>📋 Device Info</h2>
+                <button onclick="getDeviceInfo()">Refresh</button>
+                <div class="output" id="deviceOutput"></div>
+            </div>
+
+            <!-- App Management -->
+            <div class="card">
+                <h2>📦 App Management</h2>
+                <div class="input-group">
+                    <input type="text" id="appPackage" placeholder="Package name">
+                    <button onclick="installApp()">Install</button>
+                </div>
+                <div class="button-group">
+                    <button onclick="listApps()">List Apps</button>
+                    <button onclick="clearAppData()">Clear Data</button>
+                    <button onclick="uninstallApp()">Uninstall</button>
+                </div>
+                <div class="output" id="appOutput"></div>
+            </div>
+
+            <!-- Settings -->
+            <div class="card">
+                <h2>⚙️ Settings</h2>
+                <div class="button-group">
+                    <button onclick="setBrightness()">Brightness</button>
+                    <button onclick="toggleWiFi()">WiFi Toggle</button>
+                    <button onclick="toggleBluetooth()">BT Toggle</button>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="setting" placeholder="Settings value 0-255">
+                    <button onclick="setSetting()">Set</button>
+                </div>
+                <div class="output" id="settingsOutput"></div>
+            </div>
+
+            <!-- Screen Control -->
+            <div class="card">
+                <h2>🖥️ Screen Control</h2>
+                <div class="button-group">
+                    <button onclick="screenshot()">Screenshot</button>
+                    <button onclick="powerButton()">Power</button>
+                    <button onclick="homeButton()">Home</button>
+                    <button onclick="backButton()">Back</button>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="screenText" placeholder="Text to input">
+                    <button onclick="inputText()">Type</button>
+                </div>
+                <div class="output" id="screenOutput"></div>
+            </div>
+
+            <!-- File Operations -->
+            <div class="card">
+                <h2>📁 Files</h2>
+                <div class="input-group">
+                    <input type="text" id="filePath" placeholder="/sdcard/path">
+                    <button onclick="pullFile()">Pull</button>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="pushPath" placeholder="Local file path">
+                    <button onclick="pushFile()">Push</button>
+                </div>
+                <div class="button-group">
+                    <button onclick="listStorage()">List /sdcard</button>
+                    <button onclick="getStorage()">Storage Info</button>
+                </div>
+                <div class="output" id="fileOutput"></div>
+            </div>
+
+            <!-- Battery -->
+            <div class="card">
+                <h2>🔋 Battery</h2>
+                <button onclick="getBattery()">Check Battery</button>
+                <div class="button-group">
+                    <button onclick="enableBatterySaver()">Battery Saver On</button>
+                    <button onclick="disableBatterySaver()">Battery Saver Off</button>
+                </div>
+                <div class="output" id="batteryOutput"></div>
+            </div>
         </div>
-        <div class="output" id="output-net"></div>
     </div>
-</div>
 
-<script>
-function runCmd(cmd) {
-    const output = event.target.textContent.match(/^\w+/) ? document.getElementById('output-info') : 
-                   event.target.parentElement.querySelector('.output');
-    output.textContent = 'Running: ' + cmd + '...\n';
-    fetch('/api/adb', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cmd })
-    }).then(r => r.json())
-      .then(d => {
-          output.textContent = d.result || d.error;
-          output.parentElement.appendChild(createStatus(d.success));
-      }).catch(e => {
-          output.textContent = 'Error: ' + e.message;
-          output.parentElement.appendChild(createStatus(false));
-      });
-}
+    <script>
+        const API = 'http://localhost:5037'; // ADB server TCP port
 
-function appAction(action) {
-    const pkg = document.getElementById('pkg-name').value;
-    if (!pkg) { alert('Enter package name'); return; }
-    const cmds = {
-        install: 'adb install app.apk',
-        uninstall: `adb uninstall ${pkg}`,
-        launch: `adb shell monkey -p ${pkg} -c android.intent.category.LAUNCHER 1`,
-        stop: `adb shell am force-stop ${pkg}`
-    };
-    runCmd(cmds[action]);
-}
+        async function adb(cmd) {
+            try {
+                const response = await fetch(`${API}/adb?cmd=${encodeURIComponent(cmd)}`);
+                const data = await response.json();
+                return data.output || data.error || 'No response';
+            } catch (e) {
+                return `Error: ${e.message}`;
+            }
+        }
 
-function fileAction(action) {
-    const path = document.getElementById('file-path').value;
-    const cmds = {
-        pull: `adb pull ${path} .`,
-        push: `adb push ${path} /sdcard/`
-    };
-    runCmd(cmds[action]);
-}
+        async function getDeviceInfo() {
+            const model = await adb('getprop ro.product.model');
+            const android = await adb('getprop ro.build.version.release');
+            const api = await adb('getprop ro.build.version.sdk');
+            const output = `Model: ${model}\nAndroid: ${android}\nAPI: ${api}`;
+            document.getElementById('deviceOutput').textContent = output;
+        }
 
-function createStatus(ok) {
-    const el = document.createElement('div');
-    el.className = 'status ' + (ok ? 'ok' : 'err');
-    el.textContent = ok ? '✓ Success' : '✗ Failed';
-    return el;
-}
-</script>
+        async function listApps() {
+            const apps = await adb('pm list packages -3');
+            document.getElementById('appOutput').textContent = apps.substring(0, 1000);
+        }
+
+        async function getBattery() {
+            const battery = await adb('dumpsys battery | grep -E "level|status|health"');
+            document.getElementById('batteryOutput').textContent = battery;
+        }
+
+        async function screenshot() {
+            const result = await adb('screencap -p /sdcard/screenshot.png');
+            document.getElementById('screenOutput').textContent = `Screenshot saved to /sdcard/screenshot.png`;
+        }
+
+        async function powerButton() {
+            await adb('input keyevent 26');
+            document.getElementById('screenOutput').textContent = 'Power button pressed';
+        }
+
+        async function homeButton() {
+            await adb('input keyevent 3');
+            document.getElementById('screenOutput').textContent = 'Home button pressed';
+        }
+
+        async function backButton() {
+            await adb('input keyevent 4');
+            document.getElementById('screenOutput').textContent = 'Back button pressed';
+        }
+
+        async function inputText() {
+            const text = document.getElementById('screenText').value;
+            if (text) {
+                await adb(`input text "${text}"`);
+                document.getElementById('screenOutput').textContent = `Typed: ${text}`;
+            }
+        }
+
+        async function getBrightness() {
+            const brightness = await adb('settings get system screen_brightness');
+            document.getElementById('settingsOutput').textContent = `Current brightness: ${brightness}`;
+        }
+
+        async function setBrightness() {
+            const value = document.getElementById('setting').value || '128';
+            await adb(`settings put system screen_brightness ${value}`);
+            document.getElementById('settingsOutput').textContent = `Brightness set to ${value}`;
+        }
+
+        async function toggleWiFi() {
+            const status = await adb('settings get global wifi_on');
+            const newVal = status === '1' ? '0' : '1';
+            await adb(`settings put global wifi_on ${newVal}`);
+            document.getElementById('settingsOutput').textContent = `WiFi: ${newVal === '1' ? 'ON' : 'OFF'}`;
+        }
+
+        async function listStorage() {
+            const list = await adb('ls -la /sdcard/');
+            document.getElementById('fileOutput').textContent = list.substring(0, 1500);
+        }
+
+        async function getStorage() {
+            const storage = await adb('df -h /sdcard');
+            document.getElementById('fileOutput').textContent = storage;
+        }
+
+        // Initialize
+        getDeviceInfo();
+        setInterval(getDeviceInfo, 5000);
+    </script>
 </body>
 </html>
