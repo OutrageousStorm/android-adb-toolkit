@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADB Toolkit — Dark Theme</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 20px;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    header {
+      background: linear-gradient(135deg, #1f6feb 0%, #388bfd 100%);
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      color: white;
+    }
+    h1 { font-size: 2em; }
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .tool-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 20px;
+    }
+    .tool-card h3 { color: #58a6ff; margin-bottom: 10px; }
+    button {
+      background: #238636;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover { background: #2ea043; }
+    .code {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.85em;
+      color: #79c0ff;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🖥️ ADB Toolkit — Dark Theme</h1>
+    </header>
+    <div class="tools-grid">
+      <div class="tool-card">
+        <h3>📱 Device Info</h3>
+        <p>Get device model, CPU, RAM, storage, battery.</p>
+        <button onclick="alert('adb shell getprop ro.product.model')">Get Info</button>
+      </div>
+      <div class="tool-card">
+        <h3>🎮 Screen Control</h3>
+        <p>Resolution, DPI, brightness, screenshot.</p>
+        <button onclick="alert('adb shell screencap -p > ss.png')">Capture</button>
+      </div>
+      <div class="tool-card">
+        <h3>📦 Package Manager</h3>
+        <p>Install, uninstall, list APKs.</p>
+        <button onclick="alert('adb shell pm list packages')">List Apps</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
